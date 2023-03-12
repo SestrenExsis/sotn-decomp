@@ -67,7 +67,144 @@ bool IsAlucart(void) {
     return false;
 }
 
+#ifndef NON_MATCHING
 INCLUDE_ASM("asm/us/dra/nonmatchings/52860", func_800F4994);
+#else
+extern u8 D_8009797E;
+extern u8 D_8009797F;
+extern u8 D_80097980;
+extern u8 D_80097981;
+extern s32 D_80097BC8;
+extern s32 D_80097BCC;
+extern s32 D_80097BD0;
+extern s32 D_80097BD4;
+extern ? D_800A7724;
+extern s32 D_80139830;
+extern s32 D_80139838;
+extern s32 player_stat_con;
+extern s32 player_stat_int;
+
+void func_800F4994(void) {
+    s32 temp_v0;
+    s32 temp_v1;
+    s32 temp_v1_2;
+    s32 temp_v1_3;
+    s32 var_a1;
+    s32 var_a2;
+    s32 var_a2_2;
+    s32 var_a2_3;
+    s32 var_a2_4;
+    s32 var_a2_5;
+    s32 var_a2_6;
+    s32* var_a0;
+    s32* var_a0_2;
+    s32* var_a0_3;
+    s32* var_a0_4;
+    s32* var_a1_3;
+    s32* var_a3;
+    u8 var_v1;
+    u8* var_a0_5;
+    u8* var_a1_2;
+    u8* var_a3_2;
+
+    var_a0 = &D_80097BC8;
+    var_a2 = 3;
+    do {
+        *var_a0 = 0;
+        var_a2 -= 1;
+        var_a0 += 4;
+    } while (var_a2 >= 0);
+    var_a2_2 = 0;
+    var_a3 = &D_80097BC8 + 0x40;
+    do {
+        var_a1 = 0;
+        var_a0_2 = &D_80097BC8;
+loop_4:
+        var_v1 = *((*var_a3 << 5) + &D_800A7724 + var_a1);
+        var_a1 += 1;
+        if ((s32) var_v1 >= 0x81) {
+            var_v1 -= 0x100;
+        }
+        *var_a0_2 += var_v1;
+        var_a0_2 += 4;
+        if (var_a1 < 4) {
+            goto loop_4;
+        }
+        var_a2_2 += 1;
+        var_a3 += 4;
+    } while (var_a2_2 < 5);
+    if ((u32) ((g_GameTimer.hours % 24) - 6) < 0xCU) {
+        var_a0_3 = &g_GameTimer - 0x68;
+        var_a2_3 = 0;
+        temp_v1 = CheckEquipmentItemCount(0x3BU, 4U) * 5;
+        do {
+            var_a2_3 += 1;
+            *var_a0_3 += temp_v1;
+            var_a0_3 += 4;
+        } while (var_a2_3 < 4);
+    } else {
+        var_a0_4 = &g_GameTimer - 0x68;
+        var_a2_4 = 0;
+        temp_v1_2 = CheckEquipmentItemCount(0x3AU, 4U) * 5;
+        do {
+            var_a2_4 += 1;
+            *var_a0_4 += temp_v1_2;
+            var_a0_4 += 4;
+        } while (var_a2_4 < 4);
+    }
+    if (D_80139838 != 0) {
+        D_80097BC8 += 0x14;
+    }
+    if (*D_80139834 != 0) {
+        D_80097BD0 += 0x14;
+    }
+    if (D_80139830 != 0) {
+        D_80097BD4 += 0x14;
+    }
+    if (D_8009797F & 2) {
+        D_80097BCC += 0xA;
+    }
+    if (D_80097981 & 2) {
+        D_80097BD4 += 0xA;
+    }
+    if (D_8009797E & 2) {
+        D_80097BC8 += 0xA;
+    }
+    if (D_80097980 & 2) {
+        D_80097BD0 += 0xA;
+    }
+    var_a2_5 = 0;
+    if (IsAlucart() != false) {
+        D_80097BD4 += 0x1E;
+    }
+    var_a3_2 = &D_8009797F + 0x259;
+    var_a0_5 = &D_8009797F + 0x249;
+    var_a1_2 = &D_8009797F + 0x239;
+    do {
+        var_a2_5 += 1;
+        if (*var_a0_5 >= 0x64) {
+            *var_a0_5 = 0x63;
+        }
+        temp_v1_3 = *var_a0_5;
+        var_a0_5 += 4;
+        temp_v0 = *var_a1_2;
+        var_a1_2 += 4;
+        *var_a3_2 = (s32) (temp_v0 + temp_v1_3);
+        var_a3_2 += 4;
+    } while (var_a2_5 < 4);
+    var_a2_6 = 0;
+    var_a1_3 = &D_80097BDC - 4;
+    D_80097BDC = (D_80097BCC * 8) + player_stat_con;
+    D_80097BE0 = (D_80097BD0 * 4) + player_stat_int;
+    do {
+        var_a2_6 += 1;
+        if (*var_a1_3 < 0) {
+            *var_a1_3 = 0;
+        }
+        var_a1_3 += 4;
+    } while (var_a2_6 < 4);
+}
+#endif
 
 INCLUDE_ASM("asm/us/dra/nonmatchings/52860", func_800F4D38);
 
