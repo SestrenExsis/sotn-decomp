@@ -67,142 +67,137 @@ bool IsAlucart(void) {
     return false;
 }
 
+// https://decomp.me/scratch/YWxfz
+// Match: 93.13%
 #ifndef NON_MATCHING
 INCLUDE_ASM("asm/us/dra/nonmatchings/52860", func_800F4994);
 #else
-extern u8 D_8009797E;
-extern u8 D_8009797F;
-extern u8 D_80097980;
-extern u8 D_80097981;
-extern s32 D_80097BC8;
-extern s32 D_80097BCC;
-extern s32 D_80097BD0;
-extern s32 D_80097BD4;
-extern ? D_800A7724;
-extern s32 D_80139830;
-extern s32 D_80139838;
+extern u8 D_8009797E;  // g_relicToothOfVlad
+extern u8 D_8009797F;  // g_relicRibOfVlad
+extern u8 D_80097980;  // g_relicRingOfVlad
+extern u8 D_80097981;  // g_relicEyeOfVlad
+extern s32 D_80097BC8; // g_playerStrengthBonus, g_playerStatBonus[]
+extern s32 D_80097BCC; // g_playerConstitutionBonus
+extern s32 D_80097BD0; // g_playerIntelligenceBonus
+extern s32 D_80097BD4; // g_playerLuckBonus
+extern u8 D_800A7724;
+extern s32 D_80139830; // g_ringLapisLazuli ?
+extern s32 D_80139838; // g_spellSummonHorse ?
 extern s32 player_stat_con;
 extern s32 player_stat_int;
 
 void func_800F4994(void) {
+    s32* new_var;
+    s32 i;
+    s32 j;
+    u8 new_var3;
+    u32 new_var5;
+    int new_var4;
     s32 temp_v0;
-    s32 temp_v1;
+    s32 temp_v1_1;
     s32 temp_v1_2;
     s32 temp_v1_3;
-    s32 var_a1;
-    s32 var_a2;
-    s32 var_a2_2;
-    s32 var_a2_3;
-    s32 var_a2_4;
-    s32 var_a2_5;
-    s32 var_a2_6;
-    s32* var_a0;
+    s32* var_a0_1;
     s32* var_a0_2;
     s32* var_a0_3;
     s32* var_a0_4;
+    s32* new_var2;
     s32* var_a1_3;
-    s32* var_a3;
-    u8 var_v1;
-    u8* var_a0_5;
-    u8* var_a1_2;
-    u8* var_a3_2;
+    s32* var_a3_1;
+    s32 var_v1;
+    s32* var_a0_5;
+    s32* var_a1_2;
+    s32* var_a3_2;
+    s32* temp;
+    s32 maxItemCount;
 
-    var_a0 = &D_80097BC8;
-    var_a2 = 3;
-    do {
-        *var_a0 = 0;
-        var_a2 -= 1;
-        var_a0 += 4;
-    } while (var_a2 >= 0);
-    var_a2_2 = 0;
-    var_a3 = &D_80097BC8 + 0x40;
-    do {
-        var_a1 = 0;
-        var_a0_2 = &D_80097BC8;
-loop_4:
-        var_v1 = *((*var_a3 << 5) + &D_800A7724 + var_a1);
-        var_a1 += 1;
-        if ((s32) var_v1 >= 0x81) {
-            var_v1 -= 0x100;
+    var_a0_1 = &D_80097BC8;
+    for (i = 0; i < 4; i++) {
+        *var_a0_1 = 0;
+        var_a0_1 += 1;
+    }
+    i = 0;
+    temp = &D_800A7724;
+    var_a0_1 = &D_80097BC8;
+    for (i = 0; i < 5; i++) {
+        new_var = var_a3_1;
+        for (j = 0; j < 4; j++) {
+            var_v1 = *((((*new_var) << 3) + (temp)) + j);
+            if (var_v1 >= 0x81) {
+                var_v1 -= 0x100;
+                do {
+                } while (0);
+            }
+            *var_a0_1 += var_v1;
+            var_a0_1 += 1;
         }
-        *var_a0_2 += var_v1;
-        var_a0_2 += 4;
-        if (var_a1 < 4) {
-            goto loop_4;
+        var_a3_1 += 1;
+    }
+    temp_v1_2 = g_GameTimer.hours;
+    new_var4 = temp_v1_2 % 24;
+    if (((u32)(new_var4 - 6)) < 0xCU) {
+        // Sunstone increases stats after Dawn (6-18 hours)
+        temp_v1_1 = CheckEquipmentItemCount(0x3BU, 4U);
+        var_a0_3 = (&g_GameTimer) - 0x68;
+        for (i = 0; i < 4; i++) {
+            *var_a0_3 += 5 * temp_v1_1;
+            var_a0_3 += 1;
         }
-        var_a2_2 += 1;
-        var_a3 += 4;
-    } while (var_a2_2 < 5);
-    if ((u32) ((g_GameTimer.hours % 24) - 6) < 0xCU) {
-        var_a0_3 = &g_GameTimer - 0x68;
-        var_a2_3 = 0;
-        temp_v1 = CheckEquipmentItemCount(0x3BU, 4U) * 5;
-        do {
-            var_a2_3 += 1;
-            *var_a0_3 += temp_v1;
-            var_a0_3 += 4;
-        } while (var_a2_3 < 4);
     } else {
-        var_a0_4 = &g_GameTimer - 0x68;
-        var_a2_4 = 0;
-        temp_v1_2 = CheckEquipmentItemCount(0x3AU, 4U) * 5;
-        do {
-            var_a2_4 += 1;
-            *var_a0_4 += temp_v1_2;
-            var_a0_4 += 4;
-        } while (var_a2_4 < 4);
+        // Moonstone increases stats after Dusk (0-6 hours and 18-24 hours)
+        temp_v1_2 = CheckEquipmentItemCount(0x3AU, 4U);
+        var_a0_4 = (&g_GameTimer) - 0x68;
+        for (i = 0; i < 4; i++) {
+            *var_a0_4 += 5 * temp_v1_2;
+            var_a0_4 += 1;
+        }
     }
     if (D_80139838 != 0) {
         D_80097BC8 += 0x14;
     }
-    if (*D_80139834 != 0) {
+    if ((*D_80139834) != 0) {
         D_80097BD0 += 0x14;
     }
     if (D_80139830 != 0) {
         D_80097BD4 += 0x14;
     }
-    if (D_8009797F & 2) {
+    if (D_80097964[0x1B] & 2) {
         D_80097BCC += 0xA;
     }
-    if (D_80097981 & 2) {
+    if (D_80097964[0x1D] & 2) {
         D_80097BD4 += 0xA;
     }
-    if (D_8009797E & 2) {
+    if (D_80097964[0x1A] & 2) {
         D_80097BC8 += 0xA;
     }
-    if (D_80097980 & 2) {
+    if (D_80097964[0x1C] & 2) {
         D_80097BD0 += 0xA;
     }
-    var_a2_5 = 0;
+    // Alucart equipment grants +30 Luck bonus when the full set is worn
     if (IsAlucart() != false) {
         D_80097BD4 += 0x1E;
     }
-    var_a3_2 = &D_8009797F + 0x259;
-    var_a0_5 = &D_8009797F + 0x249;
-    var_a1_2 = &D_8009797F + 0x239;
-    do {
-        var_a2_5 += 1;
-        if (*var_a0_5 >= 0x64) {
-            *var_a0_5 = 0x63;
+
+    i = 0;
+    new_var5 = 99;
+    var_a3_2 = (u8*)&D_80097964[0x1B] + 0x259;
+    var_a0_5 = (u8*)&D_80097964[0x1B] + 0x249;
+    var_a1_2 = (u8*)&D_80097964[0x1B] + 0x239;
+    for (; i < 4; i++) {
+        if (*var_a0_5 > 99) {
+            *var_a0_5 = new_var5;
         }
-        temp_v1_3 = *var_a0_5;
-        var_a0_5 += 4;
-        temp_v0 = *var_a1_2;
-        var_a1_2 += 4;
-        *var_a3_2 = (s32) (temp_v0 + temp_v1_3);
-        var_a3_2 += 4;
-    } while (var_a2_5 < 4);
-    var_a2_6 = 0;
-    var_a1_3 = &D_80097BDC - 4;
-    D_80097BDC = (D_80097BCC * 8) + player_stat_con;
+        temp_v1_3 = *var_a0_5++;
+        temp_v0 = *var_a1_2++;
+        *var_a3_2++ = (s32)(temp_v0 + temp_v1_3);
+    }
+    D_80097BDC[0] = (D_80097BCC * 8) + player_stat_con;
     D_80097BE0 = (D_80097BD0 * 4) + player_stat_int;
-    do {
-        var_a2_6 += 1;
-        if (*var_a1_3 < 0) {
-            *var_a1_3 = 0;
+    for (i = 0; i < 4; i++) {
+        if (D_80097BDC[i - 1] < 0) {
+            D_80097BDC[i - 1] = 0;
         }
-        var_a1_3 += 4;
-    } while (var_a2_6 < 4);
+    }
 }
 #endif
 
