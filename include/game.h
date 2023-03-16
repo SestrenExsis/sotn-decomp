@@ -1115,7 +1115,7 @@ extern u8 D_8009796E;
 /* 80097A8D */ extern s8 g_InventoryOrder[];
 extern u8 D_80097B9C[];
 extern PlayerStats D_80097BA0;
-extern s32 D_80097BDC;
+extern s32 D_80097BDC[];
 extern s32 D_80097BE0;   // total CON
 extern s32 D_80097BE4[]; // total LCK
 extern s32 D_80097BFC;   // g_SubweaponId

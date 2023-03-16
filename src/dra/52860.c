@@ -67,15 +67,21 @@ bool IsAlucart(void) {
     return false;
 }
 
-// https://decomp.me/scratch/YWxfz
-// Match: 93.13%
+// https://decomp.me/scratch/jUBDz
+// Match: 99.06%
 #ifndef NON_MATCHING
 INCLUDE_ASM("asm/us/dra/nonmatchings/52860", func_800F4994);
 #else
-extern u8 D_8009797E;  // g_relicToothOfVlad
-extern u8 D_8009797F;  // g_relicRibOfVlad
-extern u8 D_80097980;  // g_relicRingOfVlad
-extern u8 D_80097981;  // g_relicEyeOfVlad
+typedef struct {
+    s32 dummy;
+    s32 D_80097BC8; // g_playerStrengthBonus, g_playerStatBonus[]
+    s32 D_80097BCC; // g_playerConstitutionBonus
+    s32 D_80097BD0; // g_playerIntelligenceBonus
+    s32 D_80097BD4; // g_playerLuckBonus
+} Playerblabla;
+
+extern u8 D_80097964[]; // g_Relics (new array I just came up with)
+extern Playerblabla D_80097BC4;
 extern s32 D_80097BC8; // g_playerStrengthBonus, g_playerStatBonus[]
 extern s32 D_80097BCC; // g_playerConstitutionBonus
 extern s32 D_80097BD0; // g_playerIntelligenceBonus
@@ -85,6 +91,12 @@ extern s32 D_80139830; // g_ringLapisLazuli ?
 extern s32 D_80139838; // g_spellSummonHorse ?
 extern s32 player_stat_con;
 extern s32 player_stat_int;
+// extern s32 D_80097BDC[];
+
+extern u8 D_8009797E; // g_relicToothOfVlad
+extern u8 D_8009797F; // g_relicRibOfVlad
+extern u8 D_80097980; // g_relicRingOfVlad
+extern u8 D_80097981; // g_relicEyeOfVlad
 
 void func_800F4994(void) {
     s32* new_var;
@@ -94,6 +106,7 @@ void func_800F4994(void) {
     u32 new_var5;
     int new_var4;
     s32 temp_v0;
+
     s32 temp_v1_1;
     s32 temp_v1_2;
     s32 temp_v1_3;
@@ -108,28 +121,27 @@ void func_800F4994(void) {
     s32* var_a0_5;
     s32* var_a1_2;
     s32* var_a3_2;
-    s32* temp;
+    u8* temp;
     s32 maxItemCount;
 
-    var_a0_1 = &D_80097BC8;
+    var_a0_1 = &D_80097BC4.D_80097BC8;
     for (i = 0; i < 4; i++) {
-        *var_a0_1 = 0;
-        var_a0_1 += 1;
+        *var_a0_1++ = 0;
     }
     i = 0;
     temp = &D_800A7724;
-    var_a0_1 = &D_80097BC8;
+    var_a0_1 = (var_a3_1 = &D_80097BC4.D_80097BC8);
     for (i = 0; i < 5; i++) {
+        var_a3_1 += 16;
+        j = 0;
         new_var = var_a3_1;
+        // a0 = t1 ???
         for (j = 0; j < 4; j++) {
-            var_v1 = *((((*new_var) << 3) + (temp)) + j);
+            var_v1 = *((((*new_var) << 5) + (temp)) + j);
             if (var_v1 >= 0x81) {
                 var_v1 -= 0x100;
-                do {
-                } while (0);
             }
-            *var_a0_1 += var_v1;
-            var_a0_1 += 1;
+            *var_a0_1++ += var_v1;
         }
         var_a3_1 += 1;
     }
@@ -138,7 +150,7 @@ void func_800F4994(void) {
     if (((u32)(new_var4 - 6)) < 0xCU) {
         // Sunstone increases stats after Dawn (6-18 hours)
         temp_v1_1 = CheckEquipmentItemCount(0x3BU, 4U);
-        var_a0_3 = (&g_GameTimer) - 0x68;
+        var_a0_3 = (u8*)(&g_GameTimer) - 0x68;
         for (i = 0; i < 4; i++) {
             *var_a0_3 += 5 * temp_v1_1;
             var_a0_3 += 1;
@@ -146,31 +158,31 @@ void func_800F4994(void) {
     } else {
         // Moonstone increases stats after Dusk (0-6 hours and 18-24 hours)
         temp_v1_2 = CheckEquipmentItemCount(0x3AU, 4U);
-        var_a0_4 = (&g_GameTimer) - 0x68;
+        var_a0_4 = (u8*)(&g_GameTimer) - 0x68;
         for (i = 0; i < 4; i++) {
             *var_a0_4 += 5 * temp_v1_2;
             var_a0_4 += 1;
         }
     }
     if (D_80139838 != 0) {
-        D_80097BC8 += 0x14;
+        D_80097BC4.D_80097BC8 += 0x14;
     }
     if ((*D_80139834) != 0) {
-        D_80097BD0 += 0x14;
+        D_80097BC4.D_80097BD0 += 0x14;
     }
     if (D_80139830 != 0) {
-        D_80097BD4 += 0x14;
+        D_80097BC4.D_80097BD4 += 0x14;
     }
     if (D_80097964[0x1B] & 2) {
         D_80097BCC += 0xA;
     }
-    if (D_80097964[0x1D] & 2) {
+    if (D_80097981 & 2) {
         D_80097BD4 += 0xA;
     }
-    if (D_80097964[0x1A] & 2) {
+    if (D_8009797E & 2) {
         D_80097BC8 += 0xA;
     }
-    if (D_80097964[0x1C] & 2) {
+    if (D_80097980 & 2) {
         D_80097BD0 += 0xA;
     }
     // Alucart equipment grants +30 Luck bonus when the full set is worn
