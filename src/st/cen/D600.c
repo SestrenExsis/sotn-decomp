@@ -403,7 +403,75 @@ void func_80195070(Entity* entity) {
     }
 }
 
+// https://decomp.me/scratch/NsA6c (88.07%)
+#ifndef NON_MATCHING
 INCLUDE_ASM("asm/us/st/cen/nonmatchings/D600", func_80195098);
+#else
+extern void (*D_8003C7BC)(s16, s16, s32*, s32);
+
+s16 func_80195098(u16* arg0, s16 arg1, s16 arg2)
+{
+    u16 posX;
+    u16 posY;
+    s32 accelerationX;
+    
+    s16 var_b;
+    s16 *var_c;
+    s16 var_e;
+    u16 var_f;
+    u16 var_g;
+    u16* var_i;
+
+    accelerationX = g_CurrentEntity->accelerationX;
+    var_c = arg0;
+    if (g_CurrentEntity->accelerationX != 0)
+    {
+        posX = (u16) g_CurrentEntity->posX.i.hi;
+        posY = (u16) g_CurrentEntity->posY.i.hi;
+        var_b = 0;
+        if (arg1 > 0)
+        {
+            while (true)
+            {
+                if (accelerationX < 0)
+                {
+                    var_i = var_c + 1;
+                    var_g = posX + (*var_c);
+                }
+                else
+                {
+                    var_i = var_c + 1;
+                    var_g = posX - (*var_c);
+                }
+                posX = var_g;
+                posY = posY + (*var_i);
+                D_8003C7BC((s16) posX, (s16) posY, &arg2, 0);
+                var_b += 2;
+                if (arg2 & 2)
+                {
+                    if (
+                        !(arg2 & 0x8000) ||
+                        (var_e = var_b + 1, ((var_b << 0x10) != 0))
+                    )
+                    {
+                        return 2;
+                    }
+                }
+                else
+                {
+                    var_e = var_b + 1;
+                }
+                var_b = var_e;
+                if (var_e >= arg1)
+                {
+                    break;
+                }
+            }
+        }
+    }
+    return 0;
+}
+#endif
 
 INCLUDE_ASM("asm/us/st/cen/nonmatchings/D600", func_801951C0);
 
