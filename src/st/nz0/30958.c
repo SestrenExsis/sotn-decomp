@@ -78,6 +78,7 @@ void EntityRedEyeBust(Entity* self) {
     }
 }
 
+// Purple brick texture that scrolls in the background?
 INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", func_801B12E8);
 
 INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", func_801B14C4);
@@ -628,6 +629,7 @@ void EntityCannonWall(Entity* self) {
     }
 }
 
+// GUESS: Related to the red skeleton enemy?
 void func_801B2AD8(Entity* self) {
     s16 firstPolygonIndex;
     POLY_GT4* poly;
@@ -695,12 +697,15 @@ void func_801B2AD8(Entity* self) {
     }
 }
 
+// GUESS: Related to the red skeleton enemy?
 // DECOMP_ME_WIP func_801B2D08 https://decomp.me/scratch/ixW6j 93.06%
 INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", func_801B2D08);
 
-INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", func_801B2FD8);
+// Pressure plate, used to trigger other entities
+INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", EntityPressurePlate);
 
-INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", func_801B3294);
+// Barrier of spikes that raises and lowers via a pressure plate
+INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", EntitySpikeBarrier);
 
 // table with globe on it that can be broken
 void EntityTableWithGlobe(Entity* self) {
@@ -909,6 +914,7 @@ void CreateLineOfFieryExplosionsEmanatingFromCurrentEntity() {
     }
 }
 
+// GUESS: Related to Gaibon's Death Animation?
 INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", func_801B3C38);
 
 // DECOMP_ME_WIP EntityCloseBossRoom https://decomp.me/scratch/bqgN9 95.04 %
@@ -971,6 +977,7 @@ void EntityBossRoomBlock(Entity* self) {
 }
 #endif
 
+// Related to Slogra getting hurt?
 s32 func_801B4690(void) {
     s32 ret = 0;
     s32 temp;
@@ -1000,6 +1007,7 @@ s32 func_801B4690(void) {
 // slogra boss
 INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", EntitySlogra);
 
+// Related to Slogra dying?
 void func_801B54A8(Entity* self) {
     s8* hitbox;
 

@@ -110,3 +110,5 @@ CreateLineOfFieryExplosionsEmanatingFromCurrentEntity = 0x801B3B78;
 EntityBoilingGreenAlchemyJar = 0x801B3648;
 EntityTallBlueFlameCandle = 0x801B3A50;
 EntityGlowingWhiteOrb = 0x801B37C0;
+EntityPressurePlate = 0x801B2FD8;
+EntitySpikeBarrier = 0x801B3294;
