@@ -883,7 +883,12 @@ void func_801B3A50(Entity* self) {
     }
 }
 
-void func_801B3B78() {
+/*
+Generates 6 fiery puffs (Entity ID 0x38) that travel outward in a straight
+line centered around the current entity.
+This function is called whenever an Axe Knight is destroyed.
+*/
+void CreateLineOfFieryExplosionsEmanatingFromCurrentEntity() {
     Entity* entity;
     s8 temp_s4 = Random() & 3;
     s16 temp_s3 = ((Random() & 0xF) << 8) - 0x800;

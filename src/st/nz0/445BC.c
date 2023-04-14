@@ -10,7 +10,7 @@ void EntityAxeKnight(Entity* self) {
     if (self->flags & 0x100) {
         if (self->step != 8) {
             func_801C29B0(NA_SE_VO_AXE_KNIGHT_SCREAM);
-            func_801B3B78();
+            CreateLineOfFieryExplosionsEmanatingFromCurrentEntity();
             self->unk3C = 0;
             self->unk80.modeS16.unk0 = 0x41;
             self->zPriority -= 0x10;
