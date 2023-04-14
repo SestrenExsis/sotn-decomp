@@ -107,3 +107,5 @@ EntityLifeUpSpawn = 0x801CA160;
 EntityMagicallySealedDoor = 0x801C7D68;
 EntityMariaCutscene = 0x801B7D58;
 CreateLineOfFieryExplosionsEmanatingFromCurrentEntity = 0x801B3B78;
+EntityBoilingGreenAlchemyJar = 0x801B3648;
+EntityTallBlueFlameCandle = 0x801B3A50;

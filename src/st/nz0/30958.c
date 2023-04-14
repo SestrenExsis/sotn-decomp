@@ -731,7 +731,8 @@ void EntityTableWithGlobe(Entity* self) {
     }
 }
 
-void func_801B3648(Entity* self) {
+// Breakable glass container filled with green liquid heated by a flame
+void EntityBoilingGreenAlchemyJar(Entity* self) {
     Entity* newEntity;
 
     switch (self->step) {
@@ -747,7 +748,7 @@ void func_801B3648(Entity* self) {
     case 1:
         AnimateEntity(D_80180F1C, self);
         if (self->unk48 != 0) {
-            func_801C29B0(0x619);
+            func_801C29B0(NA_SE_CRACK_GLASS_JAR);
             self->unk3C = 0;
             func_801BD52C(2);
         }
@@ -852,7 +853,8 @@ void func_801B37C0(Entity* self) {
     }
 }
 
-void func_801B3A50(Entity* self) {
+// Tall blue flame candle
+void EntityTallBlueFlameCandle(Entity* self) {
     switch (self->step) {
     case 0:
         InitializeEntity(D_80180CDC);
@@ -1450,6 +1452,7 @@ void Update(void) {
     }
 }
 
+// Called whenever the castle map is visible
 void func_801B9800(void) {
     Entity* entity;
     for (entity = D_800762D8; entity < &D_8007EFD8; entity++) {
