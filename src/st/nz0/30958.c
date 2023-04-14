@@ -775,7 +775,8 @@ void EntityBoilingGreenAlchemyJar(Entity* self) {
     }
 }
 
-void func_801B37C0(Entity* self) {
+// White glowing orb entity that often contains a Relic
+void EntityGlowingWhiteOrb(Entity* self) {
     Entity* newEntity;
 
     switch (self->step) {
