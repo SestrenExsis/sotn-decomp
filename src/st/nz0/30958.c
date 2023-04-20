@@ -1621,7 +1621,287 @@ void func_801B9800(void) {
 
 INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", TestCollisions);
 
+#ifndef NON_MATCHING
 INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", EntityNumericDamage);
+#else
+extern u16 D_80180C28;
+extern u16 D_80181950[];
+extern s16 (*g_api_AllocPrimitives)(s32, u16);
+void EntityNumericDamage(Entity* arg0) {
+    Primitive* prim1;
+    Primitive* prim2;
+    s16 temp_a0_4;
+    s16 temp_a0_5;
+    s16 temp_a0_6;
+    s16 temp_a1_3;
+    s16 temp_a2_2;
+    s16 temp_v0;
+    s16 temp_v0_4;
+    s16 temp_v1_7;
+    s16 var_t0;
+    s32 temp_a1;
+    s32 temp_a1_4;
+    s32 temp_a2;
+    s32 temp_t0;
+    s32 temp_t0_2;
+    s32 temp_v0_3;
+    s32 temp_v1_3;
+    s32 temp_v1_4;
+    s32 temp_v1_6;
+    s32 var_a0;
+    s32 var_t2;
+    s32 var_v0;
+    s32 var_v0_2;
+    s32 var_v1;
+    s8 temp_a0_3;
+    u16 temp_s1;
+    u16 temp_t0_3;
+    u16 temp_v1;
+    u16 temp_v1_2;
+    u16 temp_v1_5;
+    u16 var_v0_4;
+    u16 var_v0_5;
+    u16 var_v0_6;
+    u16 var_v1_2;
+    u8 temp_a0;
+    u8 temp_a0_2;
+    u8 temp_a1_2;
+    u8 temp_v0_2;
+    u8 var_v0_3;
+
+    if ((u16) arg0->unk88.S16.unk0 != 0) {
+        arg0->posX.val = g_EntityArray->posX.val;
+        arg0->posY.val = D_800733DC + 0xFFF00000;
+    }
+    temp_v1 = arg0->step;
+    switch (temp_v1) {
+    case 0:
+        temp_v1_2 = arg0->unk2E;
+        if (temp_v1_2 != 9) {
+            temp_s1 = arg0->subId;
+            if (temp_v1_2 == 0) {
+                InitializeEntity(&D_80180C28);
+                arg0->step = 0;
+                if ((temp_s1 & 0xFFFF) != 0xC000) {
+                    temp_a0 = (temp_s1 & 0x3FFF) / 1000;
+                    temp_a1 = temp_a0 & 0xFFFF;
+                    var_v0 = temp_a1 << 5;
+                    if (temp_a1 != 0) {
+                        arg0->unk7C.s = (u16) arg0->unk7C.s + 1;
+                        arg0->unk7E.modeU16 += 1;
+                        var_v0 = temp_a1 << 5;
+                    }
+                    temp_t0 = (temp_s1 & 0x3FFF) - ((((var_v0 - temp_a1) * 4) + temp_a1) * 8);
+                    arg0->unk80.modeS8.unk0 = temp_a0;
+                    temp_a0_2 = (temp_t0 & 0xFFFF) / 100;
+                    if ((temp_a0_2 & 0xFFFF) || (var_v1 = temp_a0_2 & 0xFFFF, (arg0->unk7E.modeU16 != 0))) {
+                        arg0->unk7C.s = (u16) arg0->unk7C.s + 1;
+                        arg0->unk7E.modeU16 += 1;
+                        var_v1 = temp_a0_2 & 0xFFFF;
+                    }
+                    temp_t0_2 = temp_t0 - (var_v1 * 0x64);
+                    arg0->unk80.modeS8.unk1 = temp_a0_2;
+                    temp_a0_3 = (temp_t0_2 & 0xFFFF) / 10;
+                    if ((temp_a0_3 & 0xFFFF) || (arg0->unk7E.modeU16 != 0)) {
+                        arg0->unk7C.s = (u16) arg0->unk7C.s + 1;
+                        arg0->unk7E.modeU16 += 1;
+                    }
+                    arg0->unk80.modeS16.unk2 = temp_a0_3;
+                    arg0->unk7C.s = (u16) arg0->unk7C.s + 1;
+                    arg0->unk7E.modeU16 += 1;
+                    arg0->unk80.modeS8.unk3 = (s8) (temp_t0_2 - ((temp_a0_3 & 0xFFFF) * 0xA));
+                    if (temp_s1 & 0x4000) {
+                        arg0->unk7C.s = (u16) arg0->unk7C.s + 1;
+                    }
+                } else {
+                    arg0->unk7C.s = (u16) arg0->unk7C.s + 1;
+                }
+            }
+            temp_v0 = g_api_AllocPrimitives(4, (u16) arg0->unk7C.s);
+            if (temp_v0 != 0) {
+                prim1 = &g_PrimBuf[temp_v0];
+                var_t2 = 0;
+                arg0->firstPolygonIndex = (s32) temp_v0;
+                arg0->flags |= 0x800000;
+                var_a0 = 4 - arg0->unk7E.modeU16;
+                var_t0 = -(arg0->unk7E.modeU16 * 2);
+                if (prim1 != NULL) {
+                    temp_v1_3 = temp_s1 & 0x4000;
+                    var_v0_2 = 0 & 0xFFFF;
+                    do {
+                        if (var_v0_2 == 0) {
+                            var_t2 += 1;
+                            if ((temp_s1 & 0xC000) == 0xC000) {
+                                prim1->u2 = 0x43;
+                                prim1->u0 = 0x43;
+                                prim1->u3 = 0x59;
+                                prim1->u1 = 0x59;
+                                prim1->v1 = 0x4A;
+                                prim1->v0 = 0x4A;
+                                prim1->v3 = 0x52;
+                                prim1->v2 = 0x52;
+                                prim1->r2 = 0xB;
+                                prim1->b2 = 5;
+                                prim1->r1 = 0;
+                                prim1->b1 = -0x10;
+                                prim1->tpage = 0x1A;
+                                prim1->priority = 0x1F8;
+                                prim1->blendMode = 8;
+                                prim1 = prim1->next;
+                            }
+                            if (temp_v1_3 != 0) {
+                                prim1->u2 = 0x20;
+                                prim1->u0 = 0x20;
+                                prim1->u3 = 0x42;
+                                prim1->u1 = 0x42;
+                                prim1->r2 = 0x11;
+                                prim1->v1 = 0x4A;
+                                prim1->v0 = 0x4A;
+                                prim1->v3 = 0x52;
+                                prim1->v2 = 0x52;
+                                prim1->b2 = 5;
+                                prim1->r1 = 0;
+                                prim1->b1 = -0x18;
+                                prim1->tpage = 0x1A;
+                                prim1->priority = 0x1F8;
+                                prim1->blendMode = 8;
+                                prim1 = prim1->next;
+                            }
+                        } else {
+                            prim1->r1 = var_t0;
+                            prim1->b1 = -0x10;
+                            if (temp_v1_3 != 0) {
+                                prim1->r2 = 3;
+                                prim1->b2 = 5;
+                            } else {
+                                prim1->r2 = 0x17;
+                                prim1->b2 = 0;
+                            }
+                            temp_v0_2 = arg0->unk80.modeS8Ptr[var_a0]; // ORIGINAL: (arg0 + (var_a0 & 0xFFFF))->unk80;
+                            temp_v0_3 = temp_v0_2 * 8;
+                            if (temp_v0_2 != 0) {
+                                temp_a1_2 = temp_v0_3 + 0x18;
+                                var_v0_3 = temp_v0_3 + 0x1E;
+                                prim1->u2 = temp_a1_2;
+                                prim1->u0 = temp_a1_2;
+                            } else {
+                                prim1->u2 = 0x68;
+                                prim1->u0 = 0x68;
+                                var_v0_3 = 0x6E;
+                            }
+                            prim1->u3 = var_v0_3;
+                            prim1->u1 = var_v0_3;
+                            var_t0 += 4;
+                            var_a0 += 1;
+                            prim1->v1 = 0x40;
+                            prim1->v0 = 0x40;
+                            prim1->v3 = 0x49;
+                            prim1->v2 = 0x49;
+                            prim1->tpage = 0x1A;
+                            prim1->priority = 0x1F8;
+                            prim1->blendMode = 8;
+                            prim1 = prim1->next;
+                        }
+                        var_v0_2 = var_t2 & 0xFFFF;
+                    } while (prim1 != NULL);
+                }
+                arg0->unk2E = 0;
+                arg0->unk84.S16.unk0 = 0x40;
+                arg0->step += 1;
+            }
+            arg0->unk2E += 1;
+            return;
+        }
+        DestroyEntity(arg0);
+        return;
+    case 1:
+        temp_a0_4 = (u16) arg0->unk84.S16.unk0 + 0xFFFF;
+        arg0->unk84.S16.unk0 = temp_a0_4;
+        if (!(temp_a0_4 & 0xFFFF)) {
+            DestroyEntity(arg0);
+            return;
+        }
+        prim2 = &g_PrimBuf[arg0->firstPolygonIndex];
+        temp_v1_4 = ((u16) arg0->subId >> 0xD) & 6;        
+        temp_t0_3 = D_80181950[temp_v1_4 | (temp_a0_4 & 1)]; // ORIGINAL: temp_t0_3 = *(&D_80181950 + ((temp_v1_4 | (temp_a0_4 & 1)) * 2));
+        if ((temp_v1_4 != 0) && (temp_v1_4 != 4)) {
+            if (prim2 != NULL) {
+                do {
+                    temp_v1_5 = (u16) arg0->unk84.S16.unk0;
+                    if (temp_v1_5 >= 0x3CU) {
+                        var_v0_4 = prim2->r2 + 1;
+                        var_v1_2 = prim2->b2 + 1;
+                        prim2->r2 = var_v0_4;
+                        prim2->b2 = var_v1_2;
+                    }
+                    else if (temp_v1_5 >= 0x38U) {
+                        var_v0_4 = prim2->r2 + 0xFFFF;
+                        var_v1_2 = prim2->b2 + 0xFFFF;
+                        prim2->r2 = var_v0_4;
+                        prim2->b2 = var_v1_2;
+                    }
+                    temp_v1_6 = (u16) arg0->posX.i.hi + prim2->r1;
+                    temp_a1_3 = temp_v1_6 - prim2->r2;
+                    temp_a0_5 = prim2->r2 + temp_v1_6;
+                    prim2->clut = temp_t0_3;
+                    prim2->x2 = temp_a1_3;
+                    prim2->x0 = temp_a1_3;
+                    prim2->x3 = temp_a0_5;
+                    prim2->x1 = temp_a0_5;
+                    temp_a2 = (u16) arg0->posY.i.hi + prim2->b1;
+                    temp_v1_7 = prim2->b2 + temp_a2;
+                    prim2->y3 = temp_v1_7;
+                    prim2->y2 = temp_v1_7;
+                    temp_v0_4 = temp_a2 - prim2->b2;
+                    prim2->y1 = temp_v0_4;
+                    prim2->y0 = temp_v0_4;
+                    var_v0_5 = 0x13;
+                    if ((u16) arg0->unk84.S16.unk0 >= 6U) {
+                        var_v0_5 = 2;
+                    }
+                    prim2->blendMode = var_v0_5;
+                    prim2 = prim2->next;
+                } while (prim2 != NULL);
+            }
+            if ((u16) arg0->unk88.S16.unk0 != 0) {
+                return;
+            }
+            arg0->posY.val -= 0x8000;
+            return;
+        }
+        else if (prim2 != NULL) {
+            do {
+                if ((u16) prim2->r2 >= 4U) {
+                    prim2->r2 = (u16) (prim2->r2 - 1);
+                }
+                if ((u16) prim2->b2 < 0xAU) {
+                    prim2->b2 = (u16) (prim2->b2 + 1);
+                }
+                prim2->clut = temp_t0_3;
+                temp_a0_6 = ((u16) arg0->posY.i.hi + prim2->b1) - (prim2->b2 - 5);
+                temp_a2_2 = prim2->b2 + temp_a0_6;
+                prim2->y1 = temp_a0_6;
+                prim2->y0 = temp_a0_6;
+                prim2->y3 = temp_a2_2;
+                prim2->y2 = temp_a2_2;
+                temp_a1_4 = (u16) arg0->posX.i.hi + prim2->r1;
+                prim2->x1 = temp_a1_4 + prim2->r2;
+                prim2->x0 = temp_a1_4 - prim2->r2;
+                prim2->x2 = temp_a1_4 - 3;
+                prim2->x3 = temp_a1_4 + 3;
+                var_v0_6 = 0x13;
+                if ((u16) arg0->unk84.S16.unk0 >= 6U) {
+                    var_v0_6 = 2;
+                }
+                prim2->blendMode = var_v0_6;
+                prim2 = prim2->next;
+            } while (prim2 != NULL);
+        }
+        arg0->posY.val -= 0x8000;
+        return;
+    }
+}
+#endif
 
 void CreateEntityFromLayout(Entity* entity, LayoutObject* initDesc) {
     DestroyEntity(entity);

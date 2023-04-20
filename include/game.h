@@ -332,7 +332,10 @@ typedef struct Entity {
         struct {
             /* 0x80 */ u8 unk0;
             /* 0x81 */ u8 unk1;
+            /* 0x82 */ u8 unk2;
+            /* 0x83 */ u8 unk3;
         } modeS8;
+        u8* modeS8Ptr;
     } unk80; // size = 0x4
     /* 0x84 */ Multi unk84;
     /* 0x88 */ Multi unk88; // this is a Multi: refer to EntityWarpSmallRocks
