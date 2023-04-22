@@ -1621,287 +1621,306 @@ void func_801B9800(void) {
 
 INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", TestCollisions);
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", EntityNumericDamage);
-#else
+// DECOMP_ME_WIP EntityNumericDamage https://decomp.me/scratch/RAEjF 63.95%
+// WIP 
+// #ifndef NON_MATCHING
+// INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", EntityNumericDamage);
+// #else
 extern u16 D_80180C28;
 extern u16 D_80181950[];
 extern s16 (*g_api_AllocPrimitives)(s32, u16);
-void EntityNumericDamage(Entity* arg0) {
-    Primitive* prim1;
-    Primitive* prim2;
+// Numbers displayed whenever Alucard damages an enemy
+// The number gets translated into binary decimals for each digit
+// Alternates between yellow gradient and red gradient every frame
+// Starts out skewed, moves to normal over time
+// Floats upward
+// Goes transparent at the end
+void EntityNumericDamage(Entity* entity) {
+    Entity* tempEntity;
+    Primitive* prim;
+    s16 firstPrimIndex;
+    u8 digit;
+    u16 total;
+    u16 colorPalette;
+    s32 digitIndex;
+    
+    u16 entity_subId;
     s16 temp_a0_4;
-    s16 temp_a0_5;
-    s16 temp_a0_6;
-    s16 temp_a1_3;
-    s16 temp_a2_2;
-    s16 temp_v0;
-    s16 temp_v0_4;
-    s16 temp_v1_7;
     s16 var_t0;
-    s32 temp_a1;
     s32 temp_a1_4;
-    s32 temp_a2;
-    s32 temp_t0;
-    s32 temp_t0_2;
-    s32 temp_v0_3;
-    s32 temp_v1_3;
-    s32 temp_v1_4;
-    s32 temp_v1_6;
-    s32 var_a0;
+    u16 temp_a2_1;
+    u16 temp_v1_4;
+    u16 temp_v1_6;
     s32 var_t2;
-    s32 var_v0;
     s32 var_v0_2;
-    s32 var_v1;
-    s8 temp_a0_3;
-    u16 temp_s1;
-    u16 temp_t0_3;
-    u16 temp_v1;
-    u16 temp_v1_2;
-    u16 temp_v1_5;
-    u16 var_v0_4;
-    u16 var_v0_5;
-    u16 var_v0_6;
-    u16 var_v1_2;
-    u8 temp_a0;
-    u8 temp_a0_2;
-    u8 temp_a1_2;
-    u8 temp_v0_2;
-    u8 var_v0_3;
-
-    if ((u16) arg0->unk88.S16.unk0 != 0) {
-        arg0->posX.val = g_EntityArray->posX.val;
-        arg0->posY.val = D_800733DC + 0xFFF00000;
+    u16 var_v0_3;
+    
+    tempEntity = entity;
+    if ((u16) entity->unk88.S16.unk0 != 0)
+    {
+        entity->posX.val = g_EntityArray->posX.val;
+        entity->posY.val = PLAYER.posY.val + 0xFFF00000;
     }
-    temp_v1 = arg0->step;
-    switch (temp_v1) {
+    switch (entity->step)
+    {
     case 0:
-        temp_v1_2 = arg0->unk2E;
-        if (temp_v1_2 != 9) {
-            temp_s1 = arg0->subId;
-            if (temp_v1_2 == 0) {
+        if (entity->unk2E == 9)
+        {
+            DestroyEntity(entity);
+            return;
+        }
+        else
+        { // line 078 in target
+            entity_subId = entity->subId;
+            if (entity->unk2E == 0) // line 080 in target
+            { // line 084 in target
                 InitializeEntity(&D_80180C28);
-                arg0->step = 0;
-                if ((temp_s1 & 0xFFFF) != 0xC000) {
-                    temp_a0 = (temp_s1 & 0x3FFF) / 1000;
-                    temp_a1 = temp_a0 & 0xFFFF;
-                    var_v0 = temp_a1 << 5;
-                    if (temp_a1 != 0) {
-                        arg0->unk7C.s = (u16) arg0->unk7C.s + 1;
-                        arg0->unk7E.modeU16 += 1;
-                        var_v0 = temp_a1 << 5;
+                entity->step = 0;
+                // Convert the number into binary decimal and store each of the 4 digits separately
+                // entity->unk7E.modeU16 stores how many digits will be displayed (e.g., 3 for "255", 2 for "12", 1 for "0", etc.)
+                // entity->unk7C.s seems to also store how many digits will be displayed
+                // entity->unk80 stores the individual digits
+                // entity->unk84 stores how long the digits are on screen for, in frames
+                if ((entity_subId & 0xFFFF) != 0xC000)
+                {
+                    // 1000s place
+                    total = entity_subId & 0x3FFF;
+                    digit = ((total & 0xFFFF) / 1000);
+                    if (digit != 0)
+                    {
+                        entity->unk7C.s += 1;
+                        entity->unk7E.modeU16 += 1;
                     }
-                    temp_t0 = (temp_s1 & 0x3FFF) - ((((var_v0 - temp_a1) * 4) + temp_a1) * 8);
-                    arg0->unk80.modeS8.unk0 = temp_a0;
-                    temp_a0_2 = (temp_t0 & 0xFFFF) / 100;
-                    if ((temp_a0_2 & 0xFFFF) || (var_v1 = temp_a0_2 & 0xFFFF, (arg0->unk7E.modeU16 != 0))) {
-                        arg0->unk7C.s = (u16) arg0->unk7C.s + 1;
-                        arg0->unk7E.modeU16 += 1;
-                        var_v1 = temp_a0_2 & 0xFFFF;
+                    entity->unk80.modeS8.unk0 = digit;
+                    total -= 1000 * digit;
+                    // 100s place
+                    digit = ((total & 0xFFFF) / 100);
+                    if ((digit != 0) || ((entity->unk7E.modeU16 != 0)))
+                    {
+                        entity->unk7C.s += 1;
+                        entity->unk7E.modeU16 += 1;
                     }
-                    temp_t0_2 = temp_t0 - (var_v1 * 0x64);
-                    arg0->unk80.modeS8.unk1 = temp_a0_2;
-                    temp_a0_3 = (temp_t0_2 & 0xFFFF) / 10;
-                    if ((temp_a0_3 & 0xFFFF) || (arg0->unk7E.modeU16 != 0)) {
-                        arg0->unk7C.s = (u16) arg0->unk7C.s + 1;
-                        arg0->unk7E.modeU16 += 1;
+                    entity->unk80.modeS8.unk1 = digit;
+                    total -= 100 * digit;
+                    // 10s place
+                    digit = ((total & 0xFFFF) / 10);
+                    if ((digit != 0) || (entity->unk7E.modeU16 != 0))
+                    {
+                        entity->unk7C.s += 1;
+                        entity->unk7E.modeU16 += 1;
                     }
-                    arg0->unk80.modeS16.unk2 = temp_a0_3;
-                    arg0->unk7C.s = (u16) arg0->unk7C.s + 1;
-                    arg0->unk7E.modeU16 += 1;
-                    arg0->unk80.modeS8.unk3 = (s8) (temp_t0_2 - ((temp_a0_3 & 0xFFFF) * 0xA));
-                    if (temp_s1 & 0x4000) {
-                        arg0->unk7C.s = (u16) arg0->unk7C.s + 1;
+                    entity->unk80.modeS8.unk2 = digit;
+                    total -= 10 * digit;
+                    // 1s place
+                    digit = (total & 0xFF);
+                    entity->unk7C.s += 1;
+                    tempEntity->unk7E.modeU16 += 1;
+                    entity->unk80.modeS8.unk3 = digit;
+                    if (entity_subId & 0x4000)
+                    {
+                        entity->unk7C.s += 1;
                     }
-                } else {
-                    arg0->unk7C.s = (u16) arg0->unk7C.s + 1;
+                }
+                else
+                {
+                    entity->unk7C.s += 1;
                 }
             }
-            temp_v0 = g_api_AllocPrimitives(4, (u16) arg0->unk7C.s);
-            if (temp_v0 != 0) {
-                prim1 = &g_PrimBuf[temp_v0];
+            // line 084 in target
+            firstPrimIndex = g_api_AllocPrimitives(4, entity->unk7C.s);
+            if (firstPrimIndex != 0)
+            {
+                prim = &g_PrimBuf[firstPrimIndex];
                 var_t2 = 0;
-                arg0->firstPolygonIndex = (s32) temp_v0;
-                arg0->flags |= 0x800000;
-                var_a0 = 4 - arg0->unk7E.modeU16;
-                var_t0 = -(arg0->unk7E.modeU16 * 2);
-                if (prim1 != NULL) {
-                    temp_v1_3 = temp_s1 & 0x4000;
-                    var_v0_2 = 0 & 0xFFFF;
-                    do {
-                        if (var_v0_2 == 0) {
-                            var_t2 += 1;
-                            if ((temp_s1 & 0xC000) == 0xC000) {
-                                prim1->u2 = 0x43;
-                                prim1->u0 = 0x43;
-                                prim1->u3 = 0x59;
-                                prim1->u1 = 0x59;
-                                prim1->v1 = 0x4A;
-                                prim1->v0 = 0x4A;
-                                prim1->v3 = 0x52;
-                                prim1->v2 = 0x52;
-                                prim1->r2 = 0xB;
-                                prim1->b2 = 5;
-                                prim1->r1 = 0;
-                                prim1->b1 = -0x10;
-                                prim1->tpage = 0x1A;
-                                prim1->priority = 0x1F8;
-                                prim1->blendMode = 8;
-                                prim1 = prim1->next;
-                            }
-                            if (temp_v1_3 != 0) {
-                                prim1->u2 = 0x20;
-                                prim1->u0 = 0x20;
-                                prim1->u3 = 0x42;
-                                prim1->u1 = 0x42;
-                                prim1->r2 = 0x11;
-                                prim1->v1 = 0x4A;
-                                prim1->v0 = 0x4A;
-                                prim1->v3 = 0x52;
-                                prim1->v2 = 0x52;
-                                prim1->b2 = 5;
-                                prim1->r1 = 0;
-                                prim1->b1 = -0x18;
-                                prim1->tpage = 0x1A;
-                                prim1->priority = 0x1F8;
-                                prim1->blendMode = 8;
-                                prim1 = prim1->next;
-                            }
-                        } else {
-                            prim1->r1 = var_t0;
-                            prim1->b1 = -0x10;
-                            if (temp_v1_3 != 0) {
-                                prim1->r2 = 3;
-                                prim1->b2 = 5;
-                            } else {
-                                prim1->r2 = 0x17;
-                                prim1->b2 = 0;
-                            }
-                            temp_v0_2 = arg0->unk80.modeS8Ptr[var_a0]; // ORIGINAL: (arg0 + (var_a0 & 0xFFFF))->unk80;
-                            temp_v0_3 = temp_v0_2 * 8;
-                            if (temp_v0_2 != 0) {
-                                temp_a1_2 = temp_v0_3 + 0x18;
-                                var_v0_3 = temp_v0_3 + 0x1E;
-                                prim1->u2 = temp_a1_2;
-                                prim1->u0 = temp_a1_2;
-                            } else {
-                                prim1->u2 = 0x68;
-                                prim1->u0 = 0x68;
-                                var_v0_3 = 0x6E;
-                            }
-                            prim1->u3 = var_v0_3;
-                            prim1->u1 = var_v0_3;
-                            var_t0 += 4;
-                            var_a0 += 1;
-                            prim1->v1 = 0x40;
-                            prim1->v0 = 0x40;
-                            prim1->v3 = 0x49;
-                            prim1->v2 = 0x49;
-                            prim1->tpage = 0x1A;
-                            prim1->priority = 0x1F8;
-                            prim1->blendMode = 8;
-                            prim1 = prim1->next;
+                tempEntity->firstPolygonIndex = firstPrimIndex;
+                tempEntity->flags |= 0x800000;
+                digitIndex = 4 - tempEntity->unk7E.modeU16;
+                var_t0 = -2 * entity->unk7E.modeU16;
+                var_v0_2 = 0;
+                while (prim != NULL)
+                {
+                    if (var_v0_2 == 0)
+                    {
+                        var_t2 += 1;
+                        if ((entity_subId & 0xC000) == 0xC000)
+                        {
+                            prim->u2 = 0x43;
+                            prim->u0 = 0x43;
+                            prim->u3 = 0x59;
+                            prim->u1 = 0x59;
+                            prim->v1 = 0x4A;
+                            prim->v0 = 0x4A;
+                            prim->v3 = 0x52;
+                            prim->v2 = 0x52;
+                            prim->r2 = 0xB;
+                            prim->b2 = 5;
+                            prim->r1 = 0;
+                            prim->b1 = -0x10;
+                            prim->tpage = 0x1A;
+                            prim->priority = 0x1F8;
+                            prim->blendMode = 8;
+                            prim = prim->next;
                         }
-                        var_v0_2 = var_t2 & 0xFFFF;
-                    } while (prim1 != NULL);
+                        if ((entity_subId & 0x4000) != 0)
+                        {
+                            prim->u2 = 0x20;
+                            prim->u0 = 0x20;
+                            prim->u3 = 0x42;
+                            prim->u1 = 0x42;
+                            prim->r2 = 0x11;
+                            prim->v1 = 0x4A;
+                            prim->v0 = 0x4A;
+                            prim->v3 = 0x52;
+                            prim->v2 = 0x52;
+                            prim->b2 = 5;
+                            prim->r1 = 0;
+                            prim->b1 = -0x18;
+                            prim->tpage = 0x1A;
+                            prim->priority = 0x1F8;
+                            prim->blendMode = 8;
+                            prim = prim->next;
+                        }
+                    }
+                    else
+                    {
+                        prim->r1 = var_t0;
+                        prim->b1 = -0x10;
+                        if ((entity_subId & 0x4000) != 0)
+                        {
+                            prim->r2 = 3;
+                            prim->b2 = 5;
+                        }
+                        else
+                        {
+                            prim->r2 = 0x17;
+                            prim->b2 = 0;
+                        }
+                        digit = entity->unk80.modeS8Ptr[digitIndex]; // ORIGINAL: (entity + (digitIndex & 0xFFFF))->unk80;
+                        if (digit != 0)
+                        {
+                            // Offset for digits 1-9
+                            prim->u2 = 8 * digit + 0x18;
+                            prim->u0 = 8 * digit + 0x18;
+                            var_v0_3 = 8 * digit + 0x1E;
+                        }
+                        else
+                        {
+                            // Offset for digit 0
+                            prim->u2 = 0x68;
+                            prim->u0 = 0x68;
+                            var_v0_3 = 0x6E;
+                        }
+                        prim->u3 = var_v0_3;
+                        prim->u1 = var_v0_3;
+                        var_t0 += 4;
+                        digitIndex += 1;
+                        prim->v1 = 0x40;
+                        prim->v0 = 0x40;
+                        prim->v3 = 0x49;
+                        prim->v2 = 0x49;
+                        prim->tpage = 0x1A;
+                        prim->priority = 0x1F8;
+                        prim->blendMode = 8;
+                        prim = prim->next;
+                    }
+                    var_v0_2 = var_t2 & 0xFFFF;
                 }
-                arg0->unk2E = 0;
-                arg0->unk84.S16.unk0 = 0x40;
-                arg0->step += 1;
+                entity->unk2E = 0;
+                entity->unk84.S16.unk0 = 0x40; // how long the digits are on screen for in frames
+                entity->step += 1;
             }
-            arg0->unk2E += 1;
+            entity->unk2E += 1;
             return;
         }
-        DestroyEntity(arg0);
-        return;
     case 1:
-        temp_a0_4 = (u16) arg0->unk84.S16.unk0 + 0xFFFF;
-        arg0->unk84.S16.unk0 = temp_a0_4;
-        if (!(temp_a0_4 & 0xFFFF)) {
-            DestroyEntity(arg0);
+        temp_a0_4 = (u16) entity->unk84.S16.unk0 + 0xFFFF;
+        entity->unk84.U16.unk0 -= 1;
+        if (entity->unk84.U16.unk0 <= 0)
+        {
+            DestroyEntity(entity);
             return;
         }
-        prim2 = &g_PrimBuf[arg0->firstPolygonIndex];
-        temp_v1_4 = ((u16) arg0->subId >> 0xD) & 6;        
-        temp_t0_3 = D_80181950[temp_v1_4 | (temp_a0_4 & 1)]; // ORIGINAL: temp_t0_3 = *(&D_80181950 + ((temp_v1_4 | (temp_a0_4 & 1)) * 2));
-        if ((temp_v1_4 != 0) && (temp_v1_4 != 4)) {
-            if (prim2 != NULL) {
-                do {
-                    temp_v1_5 = (u16) arg0->unk84.S16.unk0;
-                    if (temp_v1_5 >= 0x3CU) {
-                        var_v0_4 = prim2->r2 + 1;
-                        var_v1_2 = prim2->b2 + 1;
-                        prim2->r2 = var_v0_4;
-                        prim2->b2 = var_v1_2;
-                    }
-                    else if (temp_v1_5 >= 0x38U) {
-                        var_v0_4 = prim2->r2 + 0xFFFF;
-                        var_v1_2 = prim2->b2 + 0xFFFF;
-                        prim2->r2 = var_v0_4;
-                        prim2->b2 = var_v1_2;
-                    }
-                    temp_v1_6 = (u16) arg0->posX.i.hi + prim2->r1;
-                    temp_a1_3 = temp_v1_6 - prim2->r2;
-                    temp_a0_5 = prim2->r2 + temp_v1_6;
-                    prim2->clut = temp_t0_3;
-                    prim2->x2 = temp_a1_3;
-                    prim2->x0 = temp_a1_3;
-                    prim2->x3 = temp_a0_5;
-                    prim2->x1 = temp_a0_5;
-                    temp_a2 = (u16) arg0->posY.i.hi + prim2->b1;
-                    temp_v1_7 = prim2->b2 + temp_a2;
-                    prim2->y3 = temp_v1_7;
-                    prim2->y2 = temp_v1_7;
-                    temp_v0_4 = temp_a2 - prim2->b2;
-                    prim2->y1 = temp_v0_4;
-                    prim2->y0 = temp_v0_4;
-                    var_v0_5 = 0x13;
-                    if ((u16) arg0->unk84.S16.unk0 >= 6U) {
-                        var_v0_5 = 2;
-                    }
-                    prim2->blendMode = var_v0_5;
-                    prim2 = prim2->next;
-                } while (prim2 != NULL);
+        prim = &g_PrimBuf[entity->firstPolygonIndex];
+        temp_v1_4 = (entity->subId >> 0xD) & 6;        
+        colorPalette = D_80181950[temp_v1_4 | (entity->unk84.U16.unk0 & 1)]; // ORIGINAL: colorPalette = *(&D_80181950 + ((temp_v1_4 | (temp_a0_4 & 1)) * 2));
+        if ((temp_v1_4 != 0) && (temp_v1_4 != 4))
+        {
+            while (prim != NULL)
+            {
+                temp_v1_4 = entity->unk84.S16.unk0;
+                if (temp_v1_4 >= 0x3C)
+                {
+                    prim->r2 += 1;
+                    prim->b2 += 1;
+                }
+                else if (temp_v1_4 >= 0x38)
+                {
+                    prim->r2 -= 1;
+                    prim->b2 -= 1;
+                }
+                prim->clut = colorPalette;
+                temp_v1_6 = entity->posX.i.hi + prim->r1;
+                prim->x2 = prim->x0 = temp_v1_6 - prim->r2;
+                prim->x3 = prim->x1 = temp_v1_6 + prim->r2;
+                temp_a2_1 = entity->posY.i.hi + prim->b1;
+                prim->y3 = prim->y2 = temp_a2_1 + prim->b2;
+                prim->y1 = temp_a2_1 - prim->b2;
+                prim->y0 = temp_a2_1 - prim->b2;
+                if ((u16) entity->unk84.S16.unk0 >= 6)
+                {
+                    prim->blendMode = 2;
+                }
+                else
+                {
+                    prim->blendMode = 0x13;
+                }
+                prim = prim->next;
             }
-            if ((u16) arg0->unk88.S16.unk0 != 0) {
+            if ((u16) entity->unk88.S16.unk0 != 0)
+            {
                 return;
             }
-            arg0->posY.val -= 0x8000;
+            entity->posY.val -= 0x8000;
             return;
         }
-        else if (prim2 != NULL) {
-            do {
-                if ((u16) prim2->r2 >= 4U) {
-                    prim2->r2 = (u16) (prim2->r2 - 1);
+        else
+        {
+            while (prim != NULL)
+            {
+                if (prim->r2 >= 4)
+                {
+                    prim->r2 -= 1;
                 }
-                if ((u16) prim2->b2 < 0xAU) {
-                    prim2->b2 = (u16) (prim2->b2 + 1);
+                if (prim->b2 < 10)
+                {
+                    prim->b2 += 1;
                 }
-                prim2->clut = temp_t0_3;
-                temp_a0_6 = ((u16) arg0->posY.i.hi + prim2->b1) - (prim2->b2 - 5);
-                temp_a2_2 = prim2->b2 + temp_a0_6;
-                prim2->y1 = temp_a0_6;
-                prim2->y0 = temp_a0_6;
-                prim2->y3 = temp_a2_2;
-                prim2->y2 = temp_a2_2;
-                temp_a1_4 = (u16) arg0->posX.i.hi + prim2->r1;
-                prim2->x1 = temp_a1_4 + prim2->r2;
-                prim2->x0 = temp_a1_4 - prim2->r2;
-                prim2->x2 = temp_a1_4 - 3;
-                prim2->x3 = temp_a1_4 + 3;
-                var_v0_6 = 0x13;
-                if ((u16) arg0->unk84.S16.unk0 >= 6U) {
-                    var_v0_6 = 2;
+                prim->clut = colorPalette;
+                prim->y1 = prim->y0 = (entity->posY.i.hi + prim->b1) - (prim->b2 - 5);
+                prim->y2 = prim->y3 = prim->y1 + prim->b2;
+                temp_a1_4 = entity->posX.i.hi + prim->r1;
+                prim->x1 = temp_a1_4 + prim->r2;
+                prim->x0 = temp_a1_4 - prim->r2;
+                prim->x2 = temp_a1_4 - 3;
+                prim->x3 = temp_a1_4 + 3;
+                if (entity->unk84.S16.unk0 >= 6)
+                {
+                    // Disable transparency?
+                    prim->blendMode = 2;
                 }
-                prim2->blendMode = var_v0_6;
-                prim2 = prim2->next;
-            } while (prim2 != NULL);
+                else
+                {
+                    // Enable transparency?
+                    prim->blendMode = 0x13;
+                }
+                prim = prim->next;
+            }
         }
-        arg0->posY.val -= 0x8000;
+        entity->posY.val -= 0x8000;
         return;
     }
 }
-#endif
+// #endif
 
 void CreateEntityFromLayout(Entity* entity, LayoutObject* initDesc) {
     DestroyEntity(entity);
