@@ -1621,11 +1621,11 @@ void func_801B9800(void) {
 
 INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", TestCollisions);
 
-// DECOMP_ME_WIP EntityNumericDamage https://decomp.me/scratch/RAEjF 92.22%
+// DECOMP_ME_WIP EntityNumericDamage https://decomp.me/scratch/RAEjF 93.06%
 // WIP 
-#ifndef NON_MATCHING
-INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", EntityNumericDamage);
-#else
+// #ifndef NON_MATCHING
+// INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", EntityNumericDamage);
+// #else
 // At decimal values above 9999, 0000 through 0999 start showing
 // At hex value 2AF8, other sprite data starts creeping in
 // 0x4000 is the critical flag, and requires another line to display text
@@ -1660,8 +1660,16 @@ void EntityNumericDamage(Entity* entity)
     u16 tempYPos;
     u16 paletteIndex;
     
+    u16 temp1;
+    u16 temp2;
+    u16 temp3;
+    u16 temp4;
+    u16 temp5;
+    u16 temp6;
+    u16 temp7;
+    u16 temp8;
     u16 tempG;
-    s16 tempH;
+    u16 tempH;
     u16 tempI;
     u16 tempJ;
     s32 tempK;
@@ -1724,8 +1732,7 @@ void EntityNumericDamage(Entity* entity)
                     total -= 1000 * digit;
                     // 100s place
                     digit = (total / 100);
-                    tempG = digit != 0;
-                    if ((tempG) || (entity->unk7E.modeU16 != 0))
+                    if ((digit != 0) || (entity->unk7E.modeU16 != 0))
                     {
                         entity->unk7C.s += 1;
                         entity->unk7E.modeU16 += 1;
@@ -1739,8 +1746,11 @@ void EntityNumericDamage(Entity* entity)
                         entity->unk7C.s += 1;
                         (*new_var1).modeU16 += 1;
                     }
+                    // 1c0, 1950 ???
                     entity->unk80.modeS8.unk2 = digit;
                     total -= 10 * digit;
+                    entity->unk7C.s += 1;
+                    (*new_var1).modeU16 += 1;
                     // 1s place
                     digit = total;
                     entity->unk80.modeS8.unk3 = digit;
@@ -1883,12 +1893,13 @@ void EntityNumericDamage(Entity* entity)
                     *(u16*)&prim->r2 -= 1;
                     *(u16*)&prim->b2 -= 1;
                 }
+                temp7 = *(u16*)&prim->r2;
                 tempXPos = entity->posX.i.hi + *(s32*)&prim->r1;
                 tempYPos = (*new_var2).hi + *(s32*)&prim->b1;
                 prim->x2 = prim->x0 = tempXPos - *(s32*)&prim->r2;
                 prim->x3 = prim->x1 = tempXPos + *(s32*)&prim->r2;
-                prim->y3 = prim->y2 = tempYPos + *(s32*)&prim->b2;
                 prim->y1 = prim->y0 = tempYPos - *(s32*)&prim->b2;
+                prim->y3 = prim->y2 = tempYPos + *(s32*)&prim->b2;
                 prim->clut = colorPalette;
                 if (entity->unk84.U16.unk0 >= 6)
                 {
@@ -1917,36 +1928,33 @@ void EntityNumericDamage(Entity* entity)
                 {
                     *(u16*)&prim->b2 += 1;
                 }
-                do
+                temp2 = *(u16*)&entity->posY.i.hi + *(u16*)&prim->b1;
+                temp1 = *(u16*)&entity->posX.i.hi + *(u16*)&prim->r1;
+                temp4 = *(u16*)&prim->b2;
+                temp3 = temp4 - 5;
+                prim->clut = colorPalette;
+                prim->y0 = prim->y1 = (temp2 - temp3);
+                prim->y2 = prim->y3 = temp4 + temp2 - temp3;
+                temp7 = *(u16*)&prim->r2;
+                prim->x1 = temp1 + temp7;
+                prim->x0 = temp1 - temp7;
+                prim->x2 = temp1 - 3;
+                prim->x3 = temp1 + 3;
+                
+                timer = entity->unk84.U16.unk0;
+                tempJ = 0x13; // Transparent?
+                if (timer >= 6)
                 {
-                    tempH = entity->posX.i.hi;
-                    xOffset = *(s32*)&prim->b1;
-                    tempJ = (*(s32*)&prim->b2);
-                    paletteIndex = prim->y1 + tempJ;
-                    prim->y1 = prim->y0 = entity->posY.i.hi + xOffset - (tempJ + 5);
-                    prim->clut = colorPalette;
-                    prim->y2 = (prim->y3 = paletteIndex);
-                    tempXPos = tempH + *(s32*)&prim->r1;
-                    prim->x0 = tempXPos - *(s32*)&prim->r2;
-                    prim->x1 = tempXPos + *(s32*)&prim->r2;
-                    prim->x3 = 3;
-                    prim->x3 += tempXPos;
-                    prim->x2 = tempXPos - 3;
-                    timer = entity->unk84.U16.unk0;
-                    tempJ = 0x13; // Transparent?
-                    if (timer >= 6)
-                    {
-                        tempJ = 2; // Opaque?
-                    }
-                    prim->blendMode = tempJ;
-                    prim = prim->next;
-                } while (0);
+                    tempJ = 2; // Opaque?
+                }
+                prim->blendMode = tempJ;
+                prim = prim->next;
             }
             entity->posY.val -= 0x8000;
         }
     }
 }
-#endif
+// #endif
 
 void CreateEntityFromLayout(Entity* entity, LayoutObject* initDesc) {
     DestroyEntity(entity);
