@@ -1621,7 +1621,7 @@ void func_801B9800(void) {
 
 INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", TestCollisions);
 
-// DECOMP_ME_WIP EntityNumericDamage https://decomp.me/scratch/RAEjF 94.16%
+// DECOMP_ME_WIP EntityNumericDamage https://decomp.me/scratch/RAEjF 96.00%
 // WIP 
 // #ifndef NON_MATCHING
 // INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", EntityNumericDamage);
@@ -1767,14 +1767,13 @@ void EntityNumericDamage(Entity* entity)
             if (firstPrimIndex != 0)
             {
                 prim = &g_PrimBuf[firstPrimIndex];
-                tempG = 0;
-                digitIndex = 4 - entity->unk7E.modeU16;
+                tempG = 0; // ADDRESS 24c or 19d8
+                entity->flags = entity->flags | 0x800000;
                 entity->firstPolygonIndex = firstPrimIndex;
-                entity->flags |= 0x800000;
-                newPrim = prim;
+                digitIndex = 4;
+                digitIndex -= (*new_var1).modeU16;
                 xOffset = -2 * (*new_var1).modeU16; // Used to center the text?
-                
-                while (newPrim != NULL)
+                while (prim != NULL)
                 {
                     if (tempG == 0)
                     {
@@ -1786,15 +1785,15 @@ void EntityNumericDamage(Entity* entity)
                             prim->u0 = 0x43;
                             prim->u3 = 0x59;
                             prim->u1 = 0x59;
-                            // *(u16*)&prim->r2 = 0xB; // TODO(sestren): Restore?
                             prim->v1 = 0x4A;
                             prim->v0 = 0x4A;
                             prim->v3 = 0x52;
                             prim->v2 = 0x52;
-                            prim->b2 = 5;
-                            *(u16*)&prim->r1 = 0;
-                            prim->b1 = -0x10;
+                            // *(u16*)&prim->r2 = 0xB; // TODO(sestren): Restore?
+                            *(u16*)&prim->b2 = 5;
+                            *(u16*)&prim->r1 = 0; // ADDRESS 2e0 or 1a68
                             prim->tpage = 0x1A;
+                            *(s16*)&prim->b1 = -0x10;
                             // prim->priority = 0x1F8; // TODO(sestren): Restore?
                             // prim->blendMode = 8; // Invisible?
                         }
@@ -1812,7 +1811,7 @@ void EntityNumericDamage(Entity* entity)
                             prim->v3 = 0x52;
                             prim->v2 = 0x52;
                             tempK = -0x18;
-                            prim->b2 = 5;
+                            *(u16*)&prim->b2 = 5;
                             *(u16*)&prim->r1 = 0;
                             prim->b1 = tempK;
                             prim->tpage = 0x1A;
