@@ -1621,7 +1621,7 @@ void func_801B9800(void) {
 
 INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", TestCollisions);
 
-// DECOMP_ME_WIP EntityNumericDamage https://decomp.me/scratch/RAEjF 93.06%
+// DECOMP_ME_WIP EntityNumericDamage https://decomp.me/scratch/RAEjF 94.16%
 // WIP 
 // #ifndef NON_MATCHING
 // INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", EntityNumericDamage);
@@ -1647,6 +1647,7 @@ Goes transparent at the end
 void EntityNumericDamage(Entity* entity)
 {
     Primitive* prim;
+    Primitive* newPrim;
     Entity* tempEntity;
     s16 firstPrimIndex;
     u16 digit;
@@ -1656,7 +1657,7 @@ void EntityNumericDamage(Entity* entity)
     u16 timer;
     s16 xOffset;
     u16 tempXPos;
-    s32 digitIndex;
+    u16 digitIndex;
     u16 tempYPos;
     u16 paletteIndex;
     
@@ -1666,13 +1667,15 @@ void EntityNumericDamage(Entity* entity)
     u16 temp4;
     u16 temp5;
     u16 temp6;
-    u16 temp7;
+    unsigned int temp7;
     u16 temp8;
+    
     u16 tempG;
     u16 tempH;
     u16 tempI;
     u16 tempJ;
-    s32 tempK;
+    s16 tempK;
+    int new_var;
     union
     {
         u16 modeU16;
@@ -1765,12 +1768,13 @@ void EntityNumericDamage(Entity* entity)
             {
                 prim = &g_PrimBuf[firstPrimIndex];
                 tempG = 0;
+                digitIndex = 4 - entity->unk7E.modeU16;
                 entity->firstPolygonIndex = firstPrimIndex;
                 entity->flags |= 0x800000;
-                digitIndex = 4 - entity->unk7E.modeU16;
+                newPrim = prim;
                 xOffset = -2 * (*new_var1).modeU16; // Used to center the text?
-                tempI = 0x1F8;
-                while (prim != NULL)
+                
+                while (newPrim != NULL)
                 {
                     if (tempG == 0)
                     {
@@ -1782,7 +1786,7 @@ void EntityNumericDamage(Entity* entity)
                             prim->u0 = 0x43;
                             prim->u3 = 0x59;
                             prim->u1 = 0x59;
-                            *(u16*)&prim->r2 = 0xB;
+                            // *(u16*)&prim->r2 = 0xB; // TODO(sestren): Restore?
                             prim->v1 = 0x4A;
                             prim->v0 = 0x4A;
                             prim->v3 = 0x52;
@@ -1791,11 +1795,12 @@ void EntityNumericDamage(Entity* entity)
                             *(u16*)&prim->r1 = 0;
                             prim->b1 = -0x10;
                             prim->tpage = 0x1A;
-                            prim->priority = tempI;
+                            // prim->priority = 0x1F8; // TODO(sestren): Restore?
                             // prim->blendMode = 8; // Invisible?
                         }
                         if ((subId & 0x4000) != 0)
                         {
+                            // prim->priority = 0x1F8; // TODO(sestren): Restore?
                             // Select CRITICAL!! from the spritesheet
                             prim->u2 = 0x20;
                             prim->u0 = 0x20;
@@ -1811,9 +1816,8 @@ void EntityNumericDamage(Entity* entity)
                             *(u16*)&prim->r1 = 0;
                             prim->b1 = tempK;
                             prim->tpage = 0x1A;
-                            prim->priority = tempI;
-                            prim->blendMode = 8; // Invisible?
                         }
+                        prim->blendMode = 8; // Invisible?
                         prim = prim->next;
                     }
                     else
@@ -1852,8 +1856,8 @@ void EntityNumericDamage(Entity* entity)
                         prim->v3 = 0x49;
                         prim->v2 = 0x49;
                         prim->tpage = 0x1A;
-                        prim->priority = 0x1F8;
                         prim->blendMode = 8; // Invisible?
+                        prim->priority = 0x1F8;
                         prim = prim->next;
                     }
                 }
@@ -1893,13 +1897,12 @@ void EntityNumericDamage(Entity* entity)
                     *(u16*)&prim->r2 -= 1;
                     *(u16*)&prim->b2 -= 1;
                 }
-                temp7 = *(u16*)&prim->r2;
                 tempXPos = entity->posX.i.hi + *(s32*)&prim->r1;
                 tempYPos = (*new_var2).hi + *(s32*)&prim->b1;
-                prim->x2 = prim->x0 = tempXPos - *(s32*)&prim->r2;
-                prim->x3 = prim->x1 = tempXPos + *(s32*)&prim->r2;
-                prim->y1 = prim->y0 = tempYPos - *(s32*)&prim->b2;
-                prim->y3 = prim->y2 = tempYPos + *(s32*)&prim->b2;
+                prim->x0 = prim->x2 = tempXPos - *(s32*)&prim->r2;
+                prim->x1 = prim->x3 = tempXPos + *(s32*)&prim->r2;
+                prim->y0 = prim->y1 = tempYPos - *(s32*)&prim->b2;
+                prim->y2 = prim->y3 = tempYPos + *(s32*)&prim->b2;
                 prim->clut = colorPalette;
                 if (entity->unk84.U16.unk0 >= 6)
                 {
@@ -1920,7 +1923,8 @@ void EntityNumericDamage(Entity* entity)
         {
             while (prim != NULL)
             {
-                if (*(u16*)&prim->r2 >= 4)
+                temp7 = *(u16*)&prim->r2;
+                if (temp7 >= 4)
                 {
                     *(s16*)&prim->r2 -= 1;
                 }
@@ -1928,22 +1932,22 @@ void EntityNumericDamage(Entity* entity)
                 {
                     *(u16*)&prim->b2 += 1;
                 }
-                temp2 = *(u16*)&entity->posY.i.hi + *(u16*)&prim->b1;
-                temp1 = *(u16*)&entity->posX.i.hi + *(u16*)&prim->r1;
+                temp2 = *(u16*)&entity->posX.i.hi + *(u16*)&prim->b1;
+                temp1 = *(u16*)&entity->posY.i.hi + *(u16*)&prim->r1;
                 temp4 = *(u16*)&prim->b2;
-                temp3 = temp4 - 5;
+                temp3 = 5;
+                temp8 = temp4 - temp3;
                 prim->clut = colorPalette;
-                prim->y0 = prim->y1 = (temp2 - temp3);
+                prim->y0 = prim->y1 = (temp2 - temp8);
+                new_var = 3;
                 prim->y2 = prim->y3 = temp4 + temp2 - temp3;
-                temp7 = *(u16*)&prim->r2;
                 prim->x1 = temp1 + temp7;
                 prim->x0 = temp1 - temp7;
-                prim->x2 = temp1 - 3;
-                prim->x3 = temp1 + 3;
+                prim->x2 = temp1 - new_var;
+                prim->x3 = temp1 + new_var;
                 
-                timer = entity->unk84.U16.unk0;
                 tempJ = 0x13; // Transparent?
-                if (timer >= 6)
+                if (entity->unk84.U16.unk0 >= 6)
                 {
                     tempJ = 2; // Opaque?
                 }
