@@ -1621,11 +1621,11 @@ void func_801B9800(void) {
 
 INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", TestCollisions);
 
-// DECOMP_ME_WIP EntityNumericDamage https://decomp.me/scratch/RAEjF 96.00%
+// DECOMP_ME_WIP EntityNumericDamage https://decomp.me/scratch/RAEjF 97.04%
 // WIP 
-// #ifndef NON_MATCHING
-// INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", EntityNumericDamage);
-// #else
+#ifndef NON_MATCHING
+INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", EntityNumericDamage);
+#else
 // At decimal values above 9999, 0000 through 0999 start showing
 // At hex value 2AF8, other sprite data starts creeping in
 // 0x4000 is the critical flag, and requires another line to display text
@@ -1669,13 +1669,13 @@ void EntityNumericDamage(Entity* entity)
     u16 temp6;
     unsigned int temp7;
     u16 temp8;
+    u16 temp9;
     
     u16 tempG;
     u16 tempH;
     u16 tempI;
     u16 tempJ;
     s16 tempK;
-    int new_var;
     union
     {
         u16 modeU16;
@@ -1689,6 +1689,7 @@ void EntityNumericDamage(Entity* entity)
         s16 lo;
         s16 hi;
     } *new_var2;
+    int new_var3;
     
     if (entity->unk88.U16.unk0 != 0)
     {
@@ -1775,10 +1776,12 @@ void EntityNumericDamage(Entity* entity)
                 xOffset = -2 * (*new_var1).modeU16; // Used to center the text?
                 while (prim != NULL)
                 {
+                    temp5 = (subId & 0xC000);
+                    temp6 = (subId & 0x4000);
                     if (tempG == 0)
                     {
                         tempG += 1;
-                        if ((subId & 0xC000) == 0xC000)
+                        if (temp5 == 0xC000)
                         {
                             // Select GUARD from the spritesheet
                             prim->u2 = 0x43;
@@ -1786,43 +1789,36 @@ void EntityNumericDamage(Entity* entity)
                             prim->u3 = 0x59;
                             prim->u1 = 0x59;
                             prim->v1 = 0x4A;
+                            temp9 = 0xB;
                             prim->v0 = 0x4A;
                             prim->v3 = 0x52;
                             prim->v2 = 0x52;
-                            // *(u16*)&prim->r2 = 0xB; // TODO(sestren): Restore?
+                            *(u16*)&prim->r2 = temp9; // TODO(sestren): Restore?
                             *(u16*)&prim->b2 = 5;
                             *(u16*)&prim->r1 = 0; // ADDRESS 2e0 or 1a68
-                            prim->tpage = 0x1A;
                             *(s16*)&prim->b1 = -0x10;
-                            // prim->priority = 0x1F8; // TODO(sestren): Restore?
-                            // prim->blendMode = 8; // Invisible?
                         }
-                        if ((subId & 0x4000) != 0)
+                        if (temp6 != 0)
                         {
-                            // prim->priority = 0x1F8; // TODO(sestren): Restore?
                             // Select CRITICAL!! from the spritesheet
                             prim->u2 = 0x20;
                             prim->u0 = 0x20;
                             prim->u3 = 0x42;
                             prim->u1 = 0x42;
-                            *(u16*)&prim->r2 = 0x11;
                             prim->v1 = 0x4A;
                             prim->v0 = 0x4A;
                             prim->v3 = 0x52;
                             prim->v2 = 0x52;
-                            tempK = -0x18;
+                            *(u16*)&prim->r2 = 0x11;
                             *(u16*)&prim->b2 = 5;
-                            *(u16*)&prim->r1 = 0;
-                            prim->b1 = tempK;
-                            prim->tpage = 0x1A;
+                            *(u16*)&prim->r1 = 0; // ADDRESS 328 or 1ab0
+                            *(u16*)&prim->b1 = -0x18;
                         }
-                        prim->blendMode = 8; // Invisible?
-                        prim = prim->next;
                     }
                     else
                     {
                         *(u16*)&prim->r1 = xOffset;
-                        if ((subId & 0x4000) != 0)
+                        if (subId & 0x4000)
                         {
                             *(u16*)&prim->r2 = 3;
                         }
@@ -1854,11 +1850,11 @@ void EntityNumericDamage(Entity* entity)
                         prim->v0 = 0x40;
                         prim->v3 = 0x49;
                         prim->v2 = 0x49;
-                        prim->tpage = 0x1A;
-                        prim->blendMode = 8; // Invisible?
-                        prim->priority = 0x1F8;
-                        prim = prim->next;
                     }
+                    prim->tpage = 0x1A; // TODO(sestren): Restore?
+                    prim->priority = 0x1F8; // TODO(sestren): Restore?
+                    prim->blendMode = 8; // Invisible?
+                    prim = prim->next;
                 }
                 entity->unk2E = 0;
                 entity->unk84.S16.unk0 = 64; // how long the digits are on screen for in frames
@@ -1936,14 +1932,16 @@ void EntityNumericDamage(Entity* entity)
                 temp4 = *(u16*)&prim->b2;
                 temp3 = 5;
                 temp8 = temp4 - temp3;
-                prim->clut = colorPalette;
+                tempG = colorPalette;
+                prim->clut = tempG;
                 prim->y0 = prim->y1 = (temp2 - temp8);
-                new_var = 3;
-                prim->y2 = prim->y3 = temp4 + temp2 - temp3;
+                subId = (temp4 + temp2) - temp3;
+                new_var3 = 3;
+                prim->y2 = (prim->y3 = (temp4 + temp2) - temp3);
                 prim->x1 = temp1 + temp7;
                 prim->x0 = temp1 - temp7;
-                prim->x2 = temp1 - new_var;
-                prim->x3 = temp1 + new_var;
+                prim->x2 = temp1 - new_var3;
+                prim->x3 = temp1 + new_var3;
                 
                 tempJ = 0x13; // Transparent?
                 if (entity->unk84.U16.unk0 >= 6)
@@ -1957,7 +1955,7 @@ void EntityNumericDamage(Entity* entity)
         }
     }
 }
-// #endif
+#endif
 
 void CreateEntityFromLayout(Entity* entity, LayoutObject* initDesc) {
     DestroyEntity(entity);
