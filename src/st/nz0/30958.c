@@ -1667,6 +1667,7 @@ void EntityNumericDamage(Entity* entity)
     u16 tempB2;
     s16 tempB2_2;
     u8** new_var;
+    u32 tempH;
     
     u16 tempG;
     u16 tempBlendMode;
@@ -1699,9 +1700,10 @@ void EntityNumericDamage(Entity* entity)
         }
         else
         {
+            colorPalette = entity->unk2E == 0;
             subId = entity->subId;
             tempUnk2E = &entity->unk7E;
-            if (entity->unk2E == 0)
+            if (colorPalette)
             {
                 InitializeEntity(&D_80180C28);
                 entity->step = 0;
@@ -1764,7 +1766,7 @@ void EntityNumericDamage(Entity* entity)
                 tempG = 0; // ADDRESS 24c or 19d8
                 entity->flags = entity->flags | 0x800000;
                 entity->firstPolygonIndex = firstPrimIndex;
-                digitIndex = 4 - (*tempUnk2E).modeU16;
+                digitIndex = (4 - (*tempUnk2E).modeU16);
                 flicker = -2 * (*tempUnk2E).modeU16;
                 xOffset = flicker; // Used to center the text?
                 while (prim != NULL)
@@ -1819,9 +1821,16 @@ void EntityNumericDamage(Entity* entity)
                             *(u16*)&prim->r2 = 0x17;
                             *(u16*)&prim->b2 = 0;
                         }
-                        digit = *(u8*)((new_var = &(entity->unk80.modeS8Ptr)) + digitIndex);
-                        // TODO(sestren): Figure out how to get rid of 1aec: sll v0,v0,0x2
+                        tempH = &(entity->unk80.modeS8Ptr);
+                        digit = *(u8*)(tempH + digitIndex);
+                        // digit = *(u8*)((new_var = &(entity->unk80.modeS8Ptr)) + digitIndex);
                         // digit = entity->unk80.modeS8Ptr[digitIndex];
+                        // digit = *(u8*)(&entity + 0x80 + digitIndex);
+                        // TODO(sestren): Figure out how to get rid of 1aec: sll v0,v0,0x2
+                        // LEFT @ 36c
+                            // (u8) (entity + ((4 - entity[0x7e]) & 0Xffff)))[0x80]
+                        // RIGHT @ 1afc
+                            // (u8) ((entity + (((4 - entity[0x7e]) & 0xffff) << 2)))[0x80]
                         if (digit != 0)
                         {
                             // Offset for digits 1-9
@@ -1877,13 +1886,13 @@ void EntityNumericDamage(Entity* entity)
         {
             while (prim != NULL)
             {
-                timer = entity->unk84.U16.unk0;
-                if (timer >= 60)
+                ; // timer = entity->unk84.U16.unk0;
+                if (entity->unk84.U16.unk0 >= 60)
                 {
                     *(u16*)&prim->r2 += 1;
                     *(u16*)&prim->b2 += 1;
                 }
-                else if (timer >= 56)
+                else if (entity->unk84.U16.unk0 >= 56)
                 {
                     *(u16*)&prim->r2 -= 1;
                     *(u16*)&prim->b2 -= 1;
