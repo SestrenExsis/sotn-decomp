@@ -1792,7 +1792,7 @@ void EntityNumericDamage(Entity* entity) {
                             *(u16*)&prim->r2 = 0x17;
                             *(u16*)&prim->b2 = 0;
                         }
-                        tempH = &(entity->unk80.modeS8Ptr);
+                        tempH = &(entity->unk80.modeU8Ptr);
                         digit = *(u8*)(tempH + digitIndex);
                         if (digit != 0) {
                             // Offset for digits 1-9
