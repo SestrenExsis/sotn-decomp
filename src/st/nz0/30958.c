@@ -1623,9 +1623,9 @@ INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", TestCollisions);
 
 // DECOMP_ME_WIP EntityNumericDamage https://decomp.me/scratch/RAEjF 99.38%
 // WIP
-// #ifndef NON_MATCHING
-// INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", EntityNumericDamage);
-// #else
+#ifndef NON_MATCHING
+INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", EntityNumericDamage);
+#else
 /*
 Numbers displayed whenever Alucard damages an enemy
 The number gets translated into binary decimals for each digit
@@ -1907,7 +1907,7 @@ void EntityNumericDamage(Entity* entity) {
         }
     }
 }
-// #endif
+#endif
 
 void CreateEntityFromLayout(Entity* entity, LayoutObject* initDesc) {
     DestroyEntity(entity);
