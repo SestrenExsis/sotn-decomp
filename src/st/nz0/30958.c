@@ -1804,10 +1804,10 @@ void EntityNumericDamage(Entity* entity) {
     u16 tempL;
     u32 tempM;
     u16 tempN;
-    
+
     u16 total;
     u16 digit;
-    
+
     Multi tempMultiA;
     Multi tempMultiB;
 
@@ -1817,7 +1817,7 @@ void EntityNumericDamage(Entity* entity) {
             u8 unk0;
             u8 unk1;
         } modeU8;
-    }* tempUnk7E;
+    } * tempUnk7E;
 
     if (entity->ext.generic.unk88.U16.unk0 != 0) {
         entity->posX.val = g_Entities[0].posX.val;
@@ -1849,8 +1849,7 @@ void EntityNumericDamage(Entity* entity) {
 
                     // 1000s place
                     digit = total / 1000;
-                    if (digit != 0)
-                    {
+                    if (digit != 0) {
                         entity->ext.generic.unk7C.s += 1;
                         entity->ext.generic.unk7E.modeU16 += 1;
                     }
@@ -1859,8 +1858,8 @@ void EntityNumericDamage(Entity* entity) {
 
                     // 100s place
                     digit = total / 100;
-                    if ((digit != 0) || (entity->ext.generic.unk7E.modeU16 != 0))
-                    {
+                    if ((digit != 0) ||
+                        (entity->ext.generic.unk7E.modeU16 != 0)) {
                         entity->ext.generic.unk7C.s += 1;
                         entity->ext.generic.unk7E.modeU16 += 1;
                     }
@@ -1869,8 +1868,7 @@ void EntityNumericDamage(Entity* entity) {
 
                     // 10s place
                     digit = total / 10;
-                    if ((digit != 0) || ((*tempUnk7E).modeU16 != 0))
-                    {
+                    if ((digit != 0) || ((*tempUnk7E).modeU16 != 0)) {
                         entity->ext.generic.unk7C.s += 1;
                         (*tempUnk7E).modeU16 += 1;
                     }
@@ -1879,8 +1877,7 @@ void EntityNumericDamage(Entity* entity) {
 
                     // 1s place
                     digit = total / 1;
-                    if (1)
-                    {
+                    if (1) {
                         entity->ext.generic.unk7C.s += 1;
                         (*tempUnk7E).modeU16 += 1;
                     }
@@ -1894,7 +1891,8 @@ void EntityNumericDamage(Entity* entity) {
                 }
             }
             paletteIndex = subId;
-            firstPrimIndex = g_api.AllocPrimitives(4, entity->ext.generic.unk7C.u);
+            firstPrimIndex =
+                g_api.AllocPrimitives(4, entity->ext.generic.unk7C.u);
             if (firstPrimIndex != 0) {
                 prim = &g_PrimBuf[firstPrimIndex];
                 entity->flags = entity->flags | 0x800000;
@@ -1960,7 +1958,8 @@ void EntityNumericDamage(Entity* entity) {
                     prim = prim->next;
                 }
                 entity->step_s = 0;
-                entity->ext.generic.unk84.S16.unk0 = 64; // how long the digits are on screen for in frames
+                entity->ext.generic.unk84.S16.unk0 =
+                    64; // how long the digits are on screen for in frames
                 entity->step += 1;
             }
             entity->step_s += 1;
@@ -1991,7 +1990,8 @@ void EntityNumericDamage(Entity* entity) {
                 tempYPos1 = entity->posY.i.hi + *(s32*)&prim->b1;
                 prim->x0 = prim->x2 = tempXPos1 - *(s32*)&prim->r2;
                 prim->x1 = prim->x3 = tempXPos1 + *(s32*)&prim->r2;
-                // subId = tempYPos1 - (*(s32*)&prim->b2); // TODO(sestren): Remove this?
+                // subId = tempYPos1 - (*(s32*)&prim->b2); // TODO(sestren):
+                // Remove this?
                 prim->y0 = prim->y1 = tempYPos1 - *(s32*)&prim->b2;
                 prim->y2 = prim->y3 = tempYPos1 + *(s32*)&prim->b2;
                 prim->clut = total;
@@ -2010,15 +2010,18 @@ void EntityNumericDamage(Entity* entity) {
                 if (*(u16*)&prim->b2 < 10) {
                     *(u16*)&prim->b2 += 1;
                 }
-                tempXPos2 = *(u16*)&entity->posX.i.hi + *(u16*)&prim->r1; // (x + r1)
-                tempYPos1 = *(u16*)&entity->posY.i.hi + *(u16*)&prim->b1; // (y + b1)
+                tempXPos2 =
+                    *(u16*)&entity->posX.i.hi + *(u16*)&prim->r1; // (x + r1)
+                tempYPos1 =
+                    *(u16*)&entity->posY.i.hi + *(u16*)&prim->b1; // (y + b1)
                 prim->x0 = tempXPos2 - *(u16*)&prim->r2; // (x + r1) - r2
                 prim->x1 = tempXPos2 + *(u16*)&prim->r2; // (x + r1) + r2
                 prim->clut = total;
                 tempM = ((*(u16*)&prim->b2) - 5);
-                prim->y0 = prim->y1 = tempYPos1 - tempM; // (y + b1) + (b2 - 5) // IS IT - OR +?
+                prim->y0 = prim->y1 =
+                    tempYPos1 - tempM; // (y + b1) + (b2 - 5) // IS IT - OR +?
                 tempJ = prim->y3 = tempYPos1 - tempM + (*(u16*)&prim->b2);
-                prim->y2 = tempJ;   // (y + b1) - (b2 - 5) + b2
+                prim->y2 = tempJ;         // (y + b1) - (b2 - 5) + b2
                 prim->x2 = tempXPos2 - 3; // (x + r1) - 3
                 prim->x3 = tempXPos2 + 3; // (x + r1) + 3
                 tempMultiB = entity->ext.generic.unk84;
