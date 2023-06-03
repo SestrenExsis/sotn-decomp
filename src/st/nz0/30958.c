@@ -1760,7 +1760,7 @@ void func_801B9800(void) {
 
 INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", TestCollisions);
 
-// DECOMP_ME_WIP EntityNumericDamage https://decomp.me/scratch/RAEjF 99.68%
+// DECOMP_ME_WIP EntityNumericDamage https://decomp.me/scratch/PMg4y 99.82%
 // WIP
 #ifndef NON_MATCHING
 INCLUDE_ASM("asm/us/st/nz0/nonmatchings/30958", EntityNumericDamage);
