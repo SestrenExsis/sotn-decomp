@@ -1,50 +1,6 @@
 #include "dra.h"
 #include "sfx.h"
 
-typedef enum {
-    // Deallocate stage resources
-    Gameover_Init,
-
-    // Make screenshot and allocate 3D model for the melting foreground
-    Gameover_AllocResources,
-
-    // Wait for something...?
-    Gameover_2,
-
-    // Start loading game over graphics from the disk
-    Gameover_3,
-
-    // When the file is loaded, move it into the VRAM
-    Gameover_4,
-
-    // foreground melting
-    Gameover_5,
-
-    // Game over text starts brightening
-    Gameover_6,
-
-    // Start using Game Over textures that looks brighter
-    Gameover_7,
-
-    // Revert back to the slightly less bright Game Over text
-    Gameover_8,
-
-    // Game over screen fade out
-    Gameover_9,
-
-    Gameover_10,
-
-    // Return to the title screen (if you are not in ST0)
-    Gameover_11,
-
-    Gameover_Alt = 99,
-    Gameover_Init_Alt,
-    Gameover_AllocResources_Alt,
-    Gameover_2_Alt,
-    Gameover_3_Alt,
-    Gameover_11_Alt = 111,
-} GameSteps;
-
 // Game over melting effect
 void func_800E5358(void) {
     Primitive* poly = &g_PrimBuf[D_8013640C];
@@ -80,7 +36,7 @@ void func_800E5498(void) {
 
     setSemiTrans(poly, true);
     setShadeTex(poly, false);
-    SetPolyRect(poly, 0, 0, 256, 256);
+    SetPrimRect(poly, 0, 0, 256, 256);
     setUV4(poly, 16, 16, 24, 16, 16, 24, 24, 24);
     func_801072BC(poly);
     poly->tpage = 0x5A;
@@ -89,20 +45,13 @@ void func_800E5498(void) {
     g_GpuUsage.gt4++;
 }
 
-// Jump to 'nop' due to ASPSX missing
-// HD version needs some tweaking at 'Gameover_4'
-#ifndef NON_MATCHING
-#if defined(VERSION_US)
-INCLUDE_ASM("asm/us/dra/nonmatchings/gameover", HandleGameOver);
-#elif defined(VERSION_HD)
+#if !defined(NON_MATCHING) && defined(VERSION_HD)
 INCLUDE_ASM("asm/hd/dra/nonmatchings/gameover", HandleGameOver);
-#endif
 #else
 void HandleGameOver(void) {
     Primitive* prim;
     u8 var_s0;
     s32 i;
-    u8 temp_v1;
     u8 yScroll;
 
     switch (g_GameStep) {
@@ -121,12 +70,12 @@ void HandleGameOver(void) {
             g_GpuBuffers[1].draw.isbg = 0;
             g_GpuBuffers[0].draw.isbg = 0;
         }
-        func_801065F4(0);
+        DestroyEntities(0);
         func_800EA538(0);
         func_800EAEEC();
-        func_800EDA94();
+        DestroyAllPrimitives();
         func_800EDAE4();
-        func_800ECE2C();
+        HideAllBackgroundLayers();
         func_800EAD7C();
     case Gameover_10:
     case Gameover_AllocResources_Alt:
@@ -141,21 +90,21 @@ void HandleGameOver(void) {
             D_8013640C = AllocPrimitives(PRIM_GT4, 259);
             prim = &g_PrimBuf[D_8013640C];
 
-            func_80107360(prim, 0, 96, 0xFF, 0x20, 0, 0);
+            SetTexturedPrimRect(prim, 0, 96, 0xFF, 0x20, 0, 0);
             func_801072BC(prim);
             prim->tpage = 8;
             prim->blendMode = 0x75;
             prim->p1 = 0x60;
             prim = prim->next;
 
-            func_80107360(prim, 0, 0, 128, 240, 0, 0);
+            SetTexturedPrimRect(prim, 0, 0, 128, 240, 0, 0);
             func_801072DC(prim);
             prim->tpage = 0x8A;
             prim->clut = 0x100;
             prim->blendMode = 4;
             prim = prim->next;
 
-            func_80107360(prim, 128, 0, 128, 240, 0, 0);
+            SetTexturedPrimRect(prim, 128, 0, 128, 240, 0, 0);
             func_801072DC(prim);
             prim->tpage = 0x8B;
             prim->clut = 0x100;
@@ -163,7 +112,7 @@ void HandleGameOver(void) {
             prim = prim->next;
 
             for (i = 0; i < 256; i++) {
-                func_80107360(prim, i, 0, 1, 240, i & 63, 0);
+                SetTexturedPrimRect(prim, i, 0, 1, 240, i & 63, 0);
                 prim->tpage = i / 64 + 0x10C;
                 prim->priority = 0x1FF;
                 prim->blendMode = 0;
@@ -214,16 +163,16 @@ void HandleGameOver(void) {
             LoadImage(&g_Vram.D_800ACDA8, (u32*)0x8019A000);
             StoreImage(&g_Vram.D_800ACDA8, &D_80070BCC - 0x1000);
         } else {
-            if (func_800E81FC(8, SimFileType_System) < 0) {
+            if (LoadFileSim(8, SimFileType_System) < 0) {
                 break;
             }
-            if (func_800E81FC(9, SimFileType_System) < 0) {
+            if (LoadFileSim(9, SimFileType_System) < 0) {
                 break;
             }
-            if (func_800E81FC(10, SimFileType_System) < 0) {
+            if (LoadFileSim(10, SimFileType_System) < 0) {
                 break;
             }
-            if (func_800E81FC(11, SimFileType_System) < 0) {
+            if (LoadFileSim(11, SimFileType_System) < 0) {
                 break;
             }
         }
@@ -243,34 +192,29 @@ void HandleGameOver(void) {
                     PlaySfx(0x3DC);
                     break;
                 }
-            } else {
-                if (g_StageId == STAGE_DRE) {
-                    PlaySfx(0x391);
-                } else {
-                    if (g_StageId == STAGE_RBO2) {
-                        switch (rand() % 3) {
-                        case 0:
-                            PlaySfx(0x52E);
-                            break;
-                        case 1:
-                            PlaySfx(0x52F);
-                            break;
-                        case 2:
-                            PlaySfx(0x530);
-                            break;
-                        }
-                    } else {
-                        if (func_800FD4C0(0x1A, 0)) {
-                            if (!(rand() & 7)) {
-                                PlaySfx(0x3CE);
-                            } else {
-                                PlaySfx(0x33B);
-                            }
-                        } else {
-                            PlaySfx(0x33B);
-                        }
-                    }
+            } else if (g_StageId == STAGE_DRE) {
+                PlaySfx(0x391);
+            } else if (g_StageId == STAGE_RBO2) {
+                switch (rand() % 3) {
+                case 0:
+                    PlaySfx(0x52E);
+                    break;
+                case 1:
+                    PlaySfx(0x52F);
+                    break;
+                case 2:
+                    PlaySfx(0x530);
+                    break;
                 }
+            } else if (TimeAttackController(TIMEATTACK_EVENT_FIRST_MARIA_MEET,
+                                            TIMEATTACK_GET_RECORD) != 0) {
+                if (rand() & 7) {
+                    PlaySfx(0x33B);
+                } else {
+                    PlaySfx(0x3CE);
+                }
+            } else {
+                PlaySfx(0x33B);
             }
         } else {
             PlaySfx(0x33B);
@@ -340,9 +284,7 @@ void HandleGameOver(void) {
             break;
         }
         prim = prim->next;
-        temp_v1 = prim->p1;
-        prim->p1 = temp_v1 - 1;
-        if (temp_v1) {
+        if (prim->p1--) {
             break;
         }
         g_GameStep++;
@@ -391,26 +333,22 @@ void func_800E6218(void) {
 
 void func_800E6250(void) {
     if (D_8006CBC4 != 0) {
-        while (func_800E81FC(D_8006CBC4 - 1, SimFileType_FamiliarPrg) != 0)
+        while (LoadFileSim(D_8006CBC4 - 1, SimFileType_FamiliarPrg) != 0)
             ;
-        while (func_800E81FC(D_8006CBC4 - 1, SimFileType_FamiliarChr) != 0)
+        while (LoadFileSim(D_8006CBC4 - 1, SimFileType_FamiliarChr) != 0)
             ;
-        while (func_800E81FC((D_8006CBC4 + 2) * 2 + 0x8000, SimFileType_Vh) !=
-               0)
+        while (LoadFileSim((D_8006CBC4 + 2) * 2 + 0x8000, SimFileType_Vh) != 0)
             ;
-        while (func_800E81FC((D_8006CBC4 + 2) * 2 + 0x8001, SimFileType_Vb) !=
-               0)
+        while (LoadFileSim((D_8006CBC4 + 2) * 2 + 0x8001, SimFileType_Vb) != 0)
             ;
     }
 }
 
-extern unkStruct_800A872C D_800A872C[];
-
 s32 func_800E6300(void) {
     s32 i;
 
-    for (i = 0; i < 30; i++) {
-        if ((D_800A872C[i].unk0 > 0) && (g_Status.relics[i] & 2)) {
+    for (i = 0; i < LEN(g_Status.relics); i++) {
+        if (D_800A872C[i].unk0 > 0 && g_Status.relics[i] & RELIC_FLAG_ACTIVE) {
             return D_800A872C[i].unk0;
         }
     }

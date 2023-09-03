@@ -105,40 +105,9 @@ void func_801CA07C(Primitive* poly) {
     poly->next->blendMode = 0xA;
 }
 
-void func_801CA0D0(Primitive* poly) {
-    poly->p3 = 0;
-    poly->blendMode = 8;
-    poly->next->p3 = 0;
-    poly->next->type = 4;
-    poly->next->blendMode = 8;
-}
+#include "../unk_poly_func_0.h"
 
-//! FAKE
-s32 func_801CA0FC(s32 arg0, u8 arg1) {
-    s32 var_v0;
-    s32 ret = 0;
-    s32 j = arg0 + 4;
-    u8* var_v1;
-    s32 i;
-
-    for (i = 0; i < 4; i++, j += 12) {
-        var_v1 = (u8*)j;
-        do {
-            var_v0 = *var_v1 - arg1;
-
-            if (var_v0 < 0) {
-                var_v0 = 0;
-            } else {
-                ret |= 1;
-            }
-
-            *var_v1 = var_v0;
-            var_v1++;
-        } while ((s32)var_v1 < (s32)j + 3);
-    }
-
-    return ret;
-}
+#include "../unk_loop_func.h"
 
 // particle effect that spawns life up item
 // Probably it's own file

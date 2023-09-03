@@ -346,7 +346,7 @@ void func_801AECA0(void) {
         s32 tmp = 4;
         x = xnext;
         xnext += tmp;
-        LoadTPage((PixPattern*)*pix++, 0, 0, x, y, w, tmp = 0x30);
+        LoadTPage(*pix++, 0, 0, x, y, w, tmp = 0x30);
         x = xnext;
     }
 
@@ -439,10 +439,10 @@ void func_801B195C(s32 arg0) {
 
 void func_801B19F4(void) {
     SetDefDrawEnv(&g_GpuBuffers[0].draw, 0, 0, DISP_STAGE_W, DISP_STAGE_H);
-    SetDefDrawEnv(&g_GpuBuffers[1].draw, DISP_STAGE_W, 0, DISP_STAGE_W,
-                  DISP_STAGE_H);
-    SetDefDispEnv(&g_GpuBuffers[0].disp, DISP_STAGE_W, 0, DISP_STAGE_W,
-                  DISP_STAGE_H);
+    SetDefDrawEnv(
+        &g_GpuBuffers[1].draw, DISP_STAGE_W, 0, DISP_STAGE_W, DISP_STAGE_H);
+    SetDefDispEnv(
+        &g_GpuBuffers[0].disp, DISP_STAGE_W, 0, DISP_STAGE_W, DISP_STAGE_H);
     SetDefDispEnv(&g_GpuBuffers[1].disp, 0, 0, DISP_STAGE_W, DISP_STAGE_H);
     func_801B195C(0);
 }
@@ -547,21 +547,21 @@ u8 func_801B1EF4(u16 arg0) {
     }
 }
 
-void func_801B1F34(void) { D_801BAFD0 = &D_80080FE4; }
+void func_801B1F34(void) { D_801BAFD0 = g_Pix[1]; }
 
 void func_801B1F4C(s32 arg0) {
     const s32 count = 0x200;
-    PixPattern* pixPatterns;
+    u8* pix;
     s32 i;
 
     D_801BC398[arg0] = 0;
     arg0 = func_801B1EF4((u8)arg0);
-    pixPatterns = D_801BAFD0;
-    for (i = 0; i < count * (s32)sizeof(PixPattern); i++) {
+    pix = D_801BAFD0;
+    for (i = 0; i < count * 4; i++) {
         *D_801BAFD0++ = 0;
     }
 
-    LoadTPage(pixPatterns, 0, 0, 0x180, arg0, 0x100, 0x10);
+    LoadTPage(pix, 0, 0, 0x180, arg0, 0x100, 0x10);
 }
 
 void func_801B1FD8(u8* arg0, s32 arg1);
@@ -627,8 +627,8 @@ void func_801B2670(POLY_GT4* poly, s32 x, s32 y, s32 width, s32 height) {
     poly->y3 = y + height;
 }
 
-void func_801B26A0(POLY_GT4* poly, s32 x, s32 y, s32 width, s32 height, s32 u,
-                   s32 v) {
+void func_801B26A0(
+    POLY_GT4* poly, s32 x, s32 y, s32 width, s32 height, s32 u, s32 v) {
     poly->x0 = x;
     poly->y0 = y;
     poly->x1 = x + width;
@@ -708,8 +708,8 @@ void DrawString16x16(const char* str, s32 x, s32 y, s32 tga) {
 #endif
 
 void func_801B2A9C(s32 img, s32 x, s32 y, s32 tge) {
-    func_801B27A8(x, y, 8, 8, (img & 0xF) * 8, (img & 0xF0) / 2, 0x196, 0x1E,
-                  tge, 0x80);
+    func_801B27A8(
+        x, y, 8, 8, (img & 0xF) * 8, (img & 0xF0) / 2, 0x196, 0x1E, tge, 0x80);
 }
 
 void DrawImages8x8(u8* imgs, s32 x, s32 y, s32 tge) {
@@ -843,9 +843,9 @@ s32 func_801B3694(void) {
 
     case 3:
         func_801B9698(saveFile, temp_a1);
-        if (func_801B884C(nCardSlot, 0, saveFile, &D_8007EFE4, 1) != 0) {
+        if (MemcardReadFile(nCardSlot, 0, saveFile, g_Pix[0], 1) != 0) {
             g_memCardRetryCount--;
-            if (g_memCardRetryCount == (-1)) {
+            if (g_memCardRetryCount == -1) {
                 temp_v0 = -1;
             } else {
                 return 0;
@@ -869,7 +869,7 @@ s32 func_801B3694(void) {
                     } while (0);
                 }
             }
-            if (LoadSaveData((SaveData*)(&D_8007EFE4)) < 0) {
+            if (LoadSaveData((SaveData*)g_Pix[0]) < 0) {
                 return -2;
             } else {
                 return 1;
@@ -924,7 +924,7 @@ s32 func_801B3E2C(void) {
         break;
     case 1:
         func_801B9698(saveFile, blockId);
-        if (func_801B89C8(nCardSlot, 0, saveFile) != 0) {
+        if (MemcardEraseFile(nCardSlot, 0, saveFile) != 0) {
             g_memCardRetryCount--;
             if (g_memCardRetryCount == -1) {
                 return -1;
@@ -970,251 +970,3 @@ void InitRoomEntities(s32 objLayoutId) {
         break;
     }
 }
-
-INCLUDE_ASM("asm/us/st/sel/nonmatchings/2D260", TestCollisions);
-
-void DestroyEntity(Entity* entity) {
-    s32 i;
-    s32 length;
-    u32* ptr;
-
-    if (entity->flags & FLAG_FREE_POLYGONS) {
-        g_api.FreePrimitives(entity->firstPolygonIndex);
-    }
-
-    ptr = (u32*)entity;
-    length = sizeof(Entity) / sizeof(u32);
-    for (i = 0; i < length; i++)
-        *ptr++ = 0;
-}
-
-void func_801B4B9C(Entity* entity, s16 step) {
-    entity->step = step;
-    entity->step_s = 0;
-    entity->animFrameIdx = 0;
-    entity->animFrameDuration = 0;
-}
-
-s32 AnimateEntity(const u8 frames[], Entity* entity) {
-    s32 flag = 0;
-    u16 currentFrameIndex = entity->animFrameIdx * 2;
-    u8* currentFrame = frames + currentFrameIndex;
-
-    if (entity->animFrameDuration == 0) {
-        if (currentFrame[0] > 0) {
-            flag = 0x80;
-            if (currentFrame[0] == 0xFF) {
-                return false;
-            }
-
-            entity->animFrameDuration = *currentFrame++;
-            entity->animCurFrame = *currentFrame++;
-            entity->animFrameIdx++;
-        } else {
-            currentFrame = frames;
-            entity->animFrameIdx = 0;
-            entity->animFrameDuration = 0;
-            entity->animFrameDuration = *currentFrame++;
-            entity->animCurFrame = *currentFrame++;
-            entity->animFrameIdx++;
-            return false;
-        }
-    }
-
-    entity->animFrameDuration = entity->animFrameDuration - 1;
-    entity->animCurFrame = currentFrame[-1];
-    flag |= true;
-
-    return (u8)flag;
-}
-
-INCLUDE_ASM("asm/us/st/sel/nonmatchings/2D260", func_801B4C68);
-
-void func_801B4D78(void) {
-    Entity* e = &g_Entities[UNK_ENTITY_3];
-
-    if (e->step == 0) {
-        e->animSet = -0x7FFF;
-        e->animCurFrame = 1;
-        e->palette = 0x200;
-        e->ext.generic.unk80.modeS32 = 0x5C0000;
-        e->posY.i.hi = 208;
-        e->zPriority = 0x80;
-        e->step = 1;
-    }
-}
-
-void func_801B4DE0(void) {
-    Entity* unkEntity = &g_Entities[UNK_ENTITY_2];
-    s16 firstPolygonIndex;
-    POLY_GT4* poly;
-
-    switch (unkEntity->step) {
-    case 0:
-        firstPolygonIndex = g_api.AllocPrimitives(3, 1);
-        if (firstPolygonIndex != -1) {
-            poly = &g_PrimBuf[firstPolygonIndex];
-            unkEntity->firstPolygonIndex = firstPolygonIndex;
-            unkEntity->flags |= FLAG_FREE_POLYGONS;
-            *(s32*)&unkEntity->ext.generic.unk7C = poly;
-
-            poly->x1 = poly->x3 = 255;
-            poly->y0 = poly->y1 = 4;
-            poly->y2 = poly->y3 = 228;
-
-            poly->r0 = poly->r1 = poly->r2 = poly->r3 = poly->g0 = poly->g1 =
-                poly->g2 = poly->g3 = poly->b0 = poly->b1 = poly->b2 =
-                    poly->b3 = 255;
-
-            poly->pad2 = 0xC8;
-            poly->x0 = poly->x2 = 0;
-            poly->pad3 = 81;
-            D_801BC3E4 = 0;
-            unkEntity->step++;
-        }
-        break;
-
-    case 1:
-        poly = *(s32*)&unkEntity->ext.generic.unk7C;
-        if (D_801BC3E4 != 0) {
-            poly->r1 = poly->r2 = poly->r3 = poly->g0 = poly->g1 = poly->g2 =
-                poly->g3 = poly->b0 = poly->b1 = poly->b2 = poly->b3 =
-                    poly->r0 = poly->b3 - 2;
-            if (poly->r0 < 5) {
-                D_801BC3E4 = 0;
-                unkEntity->step++;
-            }
-        }
-        break;
-
-    case 2:
-        poly = *(s32*)&unkEntity->ext.generic.unk7C;
-        if (D_801BC3E4 != 0) {
-            poly->r1 = poly->r2 = poly->r3 = poly->g0 = poly->g1 = poly->g2 =
-                poly->g3 = poly->b0 = poly->b1 = poly->b2 = poly->b3 =
-                    poly->r0 = poly->b3 + 1;
-            if (poly->r0 >= 254) {
-                D_801BC3E4 = 0;
-                unkEntity->step++;
-            }
-        }
-    }
-}
-
-void func_801B4FFC(void) {
-    Entity* unkEntity = &g_Entities[UNK_ENTITY_2];
-    s16 firstPolygonIndex;
-    POLY_GT4* poly;
-
-    switch (unkEntity->step) {
-    case 0:
-        firstPolygonIndex = g_api.AllocPrimitives(3, 1);
-        if (firstPolygonIndex != -1) {
-            poly = &g_PrimBuf[firstPolygonIndex];
-            unkEntity->firstPolygonIndex = firstPolygonIndex;
-            unkEntity->flags |= FLAG_FREE_POLYGONS;
-            *(s32*)&unkEntity->ext.generic.unk7C = poly;
-
-            poly->x1 = poly->x3 = 384;
-            poly->y0 = poly->y1 = 4;
-            poly->y2 = poly->y3 = 228;
-
-            poly->r0 = poly->r1 = poly->r2 = poly->r3 = poly->g0 = poly->g1 =
-                poly->g2 = poly->g3 = poly->b0 = poly->b1 = poly->b2 =
-                    poly->b3 = poly->x0 = poly->x2 = 0;
-
-            poly->pad2 = 0xC8;
-            poly->pad3 = 0x51;
-
-            unkEntity->step++;
-        }
-        break;
-
-    case 1:
-        poly = *(s32*)&unkEntity->ext.generic.unk7C;
-        if (D_801BC3E4 != 0) {
-            poly->r1 = poly->r2 = poly->r3 = poly->g0 = poly->g1 = poly->g2 =
-                poly->g3 = poly->b0 = poly->b1 = poly->b2 = poly->b3 =
-                    poly->r0 = poly->b3 + 2;
-            if (poly->r0 >= 254) {
-                D_801BC3E4 = 0;
-                unkEntity->step++;
-            }
-        }
-
-    case 2:
-        break;
-    }
-}
-
-INCLUDE_ASM("asm/us/st/sel/nonmatchings/2D260", func_801B519C);
-
-void func_801B5350(void) {
-    Entity* entity = &g_Entities[UNK_ENTITY_5];
-
-    switch (entity->step) {
-    case 0:
-        entity->animSet = 1;
-        entity->animCurFrame = 142;
-        entity->ext.generic.unk80.modeS32 = 0x800000;
-        entity->posY.i.hi = 159;
-        entity->zPriority = 0xC0;
-        entity->unk5A = 0;
-        entity->palette = 0x8100;
-        entity->step = 1;
-        break;
-
-    case 1:
-        entity->animCurFrame = 142;
-        break;
-
-    case 2:
-        if (!(AnimateEntity(D_80180528, entity) & 0xFF)) {
-            func_801B4B9C(entity, 3);
-        }
-        entity->ext.generic.unk80.modeS32 += 0xFFFE8000;
-        break;
-
-    case 3:
-        AnimateEntity(D_80180504, entity);
-        entity->ext.generic.unk80.modeS32 += 0xFFFE8000;
-        if (entity->ext.generic.unk80.modeS16.unk2 < 0x40) {
-            entity->step = 255;
-        }
-        break;
-    }
-}
-
-void func_801B54C8(void) {
-    Entity* e = &g_Entities[UNK_ENTITY_7];
-
-    if (e->step == 0) {
-        e->animSet = -0x7FFE;
-        e->animCurFrame = 38;
-        e->facing = 1;
-        e->unk5A = 0xF;
-        e->ext.generic.unk80.modeS32 = 0x780000;
-        e->posY.i.hi = 158;
-        e->zPriority = 0xC0;
-        e->palette = 0x8210;
-        e->step = 1;
-    }
-}
-
-void func_801B5548(void) {
-    Entity* e = &g_Entities[UNK_ENTITY_7];
-
-    if (e->step == 0) {
-        e->animSet = -0x7FFE;
-        e->animCurFrame = 7;
-        e->unk5A = 0xF;
-        e->ext.generic.unk80.modeS32 = 0x780000;
-        e->posY.i.hi = 158;
-        e->zPriority = 0xC0;
-        e->palette = 0x8210;
-        e->facing = 0;
-        e->step = 1;
-    }
-}
-
-INCLUDE_ASM("asm/us/st/sel/nonmatchings/2D260", func_801B55C8);

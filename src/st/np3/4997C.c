@@ -8,8 +8,8 @@ void EntityBat(Entity* entity) {
     if (entity->flags & 0x100) {
         newEntity = AllocEntity(D_8007D858, &D_8007D858[32]);
         if (newEntity != NULL) {
-            CreateEntityFromEntity(ENTITY_EXPLOSION, entity, newEntity);
-            newEntity->subId = 1;
+            CreateEntityFromEntity(E_EXPLOSION, entity, newEntity);
+            newEntity->params = 1;
         }
         func_801C2598(0x69C);
         DestroyEntity(entity);
@@ -23,21 +23,21 @@ void EntityBat(Entity* entity) {
         break;
 
     case 1:
-        xDistance = GetPlayerDistanceX();
-        yDistance = GetPlayerDistanceY();
-        if ((xDistance < 96) && (yDistance < 96) && !(GetPlayerSide() & 2)) {
+        xDistance = GetDistanceToPlayerX();
+        yDistance = GetDistanceToPlayerY();
+        if ((xDistance < 96) && (yDistance < 96) && !(GetSideToPlayer() & 2)) {
             entity->step++;
         }
         break;
 
     case 2:
         if (AnimateEntity(D_80182570, entity) == 0) {
-            entity->facing = (GetPlayerSide() & 1) ^ 1;
-            entity->accelerationY = 0xE000;
+            entity->facing = (GetSideToPlayer() & 1) ^ 1;
+            entity->velocityY = FIX(0.875);
             if (entity->facing != 0) {
-                entity->accelerationX = 0x4000;
+                entity->velocityX = FIX(0.25);
             } else {
-                entity->accelerationX = -0x4000;
+                entity->velocityX = FIX(-0.25);
             }
             entity->animFrameIdx = (Random() & 3) * 3;
             entity->animFrameDuration = 0;
@@ -48,11 +48,11 @@ void EntityBat(Entity* entity) {
     case 3:
         AnimateEntity(D_80182554, entity);
         MoveEntity();
-        if (GetPlayerDistanceY() < 0x20) {
+        if (GetDistanceToPlayerY() < 0x20) {
             if (entity->facing == 0) {
-                entity->accelerationX = -0x10000;
+                entity->velocityX = FIX(-1);
             } else {
-                entity->accelerationX = 0x10000;
+                entity->velocityX = FIX(1);
             }
             *(s32*)&entity->ext.generic.unk7C.s = 0x800;
             entity->step++;
@@ -62,11 +62,11 @@ void EntityBat(Entity* entity) {
     case 4:
         AnimateEntity(D_80182554, entity);
         MoveEntity();
-        if ((u32)(entity->accelerationY + 0x10000) > 0x20000U) {
+        if ((u32)(entity->velocityY + 0x10000) > 0x20000U) {
             *(s32*)&entity->ext.generic.unk7C.s =
                 (s32) - *(s32*)&entity->ext.generic.unk7C.s;
         }
-        entity->accelerationY += *(s32*)&entity->ext.generic.unk7C.u;
+        entity->velocityY += *(s32*)&entity->ext.generic.unk7C.u;
         break;
     }
 }

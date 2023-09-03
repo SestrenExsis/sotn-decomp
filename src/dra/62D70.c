@@ -1,29 +1,24 @@
-
-#include "common.h"
+#define INCLUDE_ASM_NEW
 #include "dra.h"
 #include "objects.h"
 #include "sfx.h"
 
-void func_80102D08();
-extern s16 D_801379B4;
-
 void func_80102D70(void) {
-    switch (*D_801379AC) {
+    switch (D_801379AC.start) {
     case 2:
         func_80102D08();
-        g_backbufferX = (s32)D_801379B4;
-        return;
+        g_backbufferX = D_801379AC.unk8;
+        break;
     case 1:
     case 3:
     case 4:
     case 6:
         func_80102D08();
-        g_backbufferY = (s32)D_801379B4;
-        /* fallthrough */
+        g_backbufferY = D_801379AC.unk8;
     case 0:
     case 5:
     default:
-        return;
+        break;
     }
 }
 
@@ -44,7 +39,7 @@ s32 func_80102E04(void) {
         break;
 
     case 1:
-        if (func_800E9B18(new_var2, 0) != temp_s0) {
+        if (MemcardFormat(new_var2, 0) != temp_s0) {
             D_80137E50 = D_80137E50 - 1;
             if (D_80137E50 == -1) {
                 temp_s0 = -1;
@@ -60,44 +55,44 @@ s32 func_80102E04(void) {
 }
 
 void func_80102EB8(void) {
-    POLY_GT4 *poly1, *poly2, *poly3;
+    Primitive *poly1, *poly2, *poly3;
     s32 i;
 
-    D_80137E58 = AllocPrimitives(4, 3);
+    D_80137E58 = AllocPrimitives(PRIM_GT4, 3);
     poly1 = &g_PrimBuf[D_80137E58];
 
-    D_80137E5C = AllocPrimitives(3, 3);
+    D_80137E5C = AllocPrimitives(PRIM_G4, 3);
     poly2 = &g_PrimBuf[D_80137E5C];
 
-    D_80137E60 = AllocPrimitives(2, 12);
+    D_80137E60 = AllocPrimitives(PRIM_LINE_G2, 12);
     poly3 = &g_PrimBuf[D_80137E60];
 
     for (i = 0; i < 3; i++) {
-        func_80107360(poly1, 98, 79, 96, 0, 0, 0);
+        SetTexturedPrimRect(poly1, 98, 79, 96, 0, 0, 0);
         func_801072DC(poly1);
         poly1->tpage = 0x10;
         poly1->clut = 0x1A1;
-        poly1->pad2 = g_zEntityCenter.S16.unk0 + 32;
-        poly1->pad3 = 8;
+        poly1->priority = g_zEntityCenter.S16.unk0 + 32;
+        poly1->blendMode = BLEND_VISIBLE;
         poly1->p1 = 0;
-        SetPolyRect(poly2, 80, 79, 96, 0);
+        SetPrimRect(poly2, 80, 79, 96, 0);
         func_801072DC(poly2);
         func_801071CC(poly2, 96, 0);
         func_801071CC(poly2, 96, 1);
         poly2->g0 = poly2->g1 = poly2->g2 = poly2->g3 = poly2->r0 = poly2->r1 =
             poly2->r2 = poly2->r3 = 0;
         poly2->tpage = 0x1F;
-        poly2->pad2 = g_zEntityCenter.S16.unk0 + 31;
-        poly2->pad3 = 8;
-        poly1 = (POLY_GT4*)poly1->tag;
-        poly2 = (POLY_GT4*)poly2->tag;
+        poly2->priority = g_zEntityCenter.S16.unk0 + 31;
+        poly2->blendMode = BLEND_VISIBLE;
+        poly1 = poly1->next;
+        poly2 = poly2->next;
     }
 
     for (i = 0; i < 12; i++) {
         func_80107250(poly3, 255);
-        poly3->pad2 = g_zEntityCenter.S16.unk0 + 32;
-        poly3->pad3 = 8;
-        poly3 = (POLY_GT4*)poly3->tag;
+        poly3->priority = g_zEntityCenter.S16.unk0 + 32;
+        poly3->blendMode = BLEND_VISIBLE;
+        poly3 = poly3->next;
     }
 }
 
@@ -155,14 +150,14 @@ POLY_GT4* func_80103148(POLY_GT4* poly1, POLY_GT4* arg1) {
     return (POLY_GT4*)poly1->tag;
 }
 
-INCLUDE_ASM("asm/us/dra/nonmatchings/62D70", func_80103238);
+INCLUDE_ASM("dra/nonmatchings/62D70", func_80103238);
 
 void func_80103EAC(void) {
     D_80137E4C = 0;
     func_800E92F4();
 }
 
-INCLUDE_ASM("asm/us/dra/nonmatchings/62D70", func_80103ED4);
+INCLUDE_ASM("dra/nonmatchings/62D70", func_80103ED4);
 
 void func_8010427C(void) {
     FreePrimitives(D_80137E40);
@@ -170,26 +165,26 @@ void func_8010427C(void) {
     FreePrimitives(D_80137E48);
 }
 
-INCLUDE_ASM("asm/us/dra/nonmatchings/62D70", func_801042C4);
+INCLUDE_ASM("dra/nonmatchings/62D70", func_801042C4);
 
-INCLUDE_ASM("asm/us/dra/nonmatchings/62D70", func_80104790);
+INCLUDE_ASM("dra/nonmatchings/62D70", func_80104790);
 
-INCLUDE_ASM("asm/us/dra/nonmatchings/62D70", func_80105078);
+INCLUDE_ASM("dra/nonmatchings/62D70", func_80105078);
 
 void func_80105408(void) {
     g_Player.D_80072EF4 = 0x1000;
     g_Player.D_80072EFC = 1;
 }
 
-INCLUDE_ASM("asm/us/dra/nonmatchings/62D70", func_80105428);
+INCLUDE_ASM("dra/nonmatchings/62D70", func_80105428);
 
 void DestroyEntity(Entity* entity) {
     s32 i;
     s32 length;
     u32* ptr;
 
-    if (entity->flags & FLAG_FREE_POLYGONS) {
-        FreePrimitives(entity->firstPolygonIndex);
+    if (entity->flags & FLAG_HAS_PRIMS) {
+        FreePrimitives(entity->primIndex);
     }
 
     ptr = (u32*)entity;
@@ -198,7 +193,7 @@ void DestroyEntity(Entity* entity) {
         *ptr++ = NULL;
 }
 
-void func_801065F4(s16 startIndex) {
+void DestroyEntities(s16 startIndex) {
     Entity* pItem;
 
     for (pItem = &g_Entities[startIndex];
@@ -206,12 +201,6 @@ void func_801065F4(s16 startIndex) {
         DestroyEntity(pItem);
 }
 
-// Not jumping into a 'nop'. Matching with PSY-Q 3.5.
-#ifndef NON_MATCHING
-void DrawEntitiesHitbox(s32 blendMode);
-INCLUDE_ASM("asm/us/dra/nonmatchings/62D70", DrawEntitiesHitbox);
-#else
-// DECOMP_ME_WIP DrawEntitiesHitbox https://decomp.me/scratch/QFSeC
 void DrawEntitiesHitbox(s32 blendMode) {
     DR_MODE* drawMode;
     s32 polyCount;
@@ -226,9 +215,9 @@ void DrawEntitiesHitbox(s32 blendMode) {
     tile = &g_CurrentBuffer->tiles[g_GpuUsage.tile];
     drawMode = &g_CurrentBuffer->drawModes[g_GpuUsage.drawModes];
     otIdx = 0x1F0;
-    for (polyCount = 0, entity = g_Entities; polyCount < 0x40;
-         polyCount++, entity++) {
-        if (entity->unk3C == 0)
+    for (polyCount = 0, entity = g_Entities; polyCount < 0x40; polyCount++,
+        entity++) {
+        if (entity->hitboxState == 0)
             continue;
         if (g_GpuUsage.tile >= GPU_MAX_TILE_COUNT) {
             break;
@@ -237,16 +226,16 @@ void DrawEntitiesHitbox(s32 blendMode) {
         y = (u16)entity->posY.i.hi + (u16)g_backbufferY;
         x = (u16)entity->posX.i.hi + (u16)g_backbufferX;
         if (entity->facing) {
-            x -= entity->unk10;
+            x -= entity->hitboxOffX;
         } else {
-            x += entity->unk10;
+            x += entity->hitboxOffX;
         }
-        y += entity->unk12;
+        y += entity->hitboxOffY;
 
         tile->r0 = 0xFF;
         tile->g0 = 0xFF;
         tile->b0 = 0xFF;
-        if (entity->unk3C == 2) {
+        if (entity->hitboxState == 2) {
             tile->r0 = 0;
             tile->g0 = 0xFF;
             tile->b0 = 0;
@@ -262,7 +251,7 @@ void DrawEntitiesHitbox(s32 blendMode) {
     }
 
     for (; polyCount < GPU_MAX_TILE_COUNT; polyCount++, entity++) {
-        if (entity->unk3C == 0)
+        if (entity->hitboxState == 0)
             continue;
         if (g_GpuUsage.tile >= GPU_MAX_TILE_COUNT) {
             break;
@@ -271,26 +260,26 @@ void DrawEntitiesHitbox(s32 blendMode) {
         y = (u16)entity->posY.i.hi + (u16)g_backbufferY;
         x = (u16)entity->posX.i.hi + (u16)g_backbufferX;
         if (entity->facing) {
-            x -= entity->unk10;
+            x -= entity->hitboxOffX;
         } else {
-            x += entity->unk10;
+            x += entity->hitboxOffX;
         }
-        y += entity->unk12;
+        y += entity->hitboxOffY;
 
         tile->r0 = 0xFF;
         tile->g0 = 0xFF;
         tile->b0 = 0xFF;
-        if (entity->unk3C == 1) {
+        if (entity->hitboxState == 1) {
             tile->r0 = 0xFF;
             tile->g0 = 0;
             tile->b0 = 0;
         }
-        if (entity->unk3C == 2) {
+        if (entity->hitboxState == 2) {
             tile->r0 = 0;
             tile->g0 = 0;
             tile->b0 = 0xFF;
         }
-        if (entity->unk3C == 3) {
+        if (entity->hitboxState == 3) {
             tile->r0 = 0xFF;
             tile->g0 = 0;
             tile->b0 = 0xFF;
@@ -311,16 +300,15 @@ void DrawEntitiesHitbox(s32 blendMode) {
         g_GpuUsage.drawModes++;
     }
 }
-#endif
 
-INCLUDE_ASM("asm/us/dra/nonmatchings/62D70", func_80106A28);
+INCLUDE_ASM("dra/nonmatchings/62D70", func_80106A28);
 
 bool func_8010715C(s32 mapTilesetId) {
     if (g_IsUsingCd)
         return false;
 
     if (!g_UseDisk) {
-        if (func_800E81FC(mapTilesetId, SimFileType_Monster) < 0) {
+        if (LoadFileSim(mapTilesetId, SimFileType_Monster) < 0) {
             return false;
         }
     } else {
@@ -374,7 +362,7 @@ void func_801072FC(POLY_G4* poly) {
     setRGB3(poly, 0, 0, 0);
 }
 
-void SetPolyRect(POLY_GT4* poly, s32 x, s32 y, s32 width, s32 height) {
+void SetPrimRect(Primitive* poly, s32 x, s32 y, s32 width, s32 height) {
     poly->x0 = x;
     poly->y0 = y;
     poly->x1 = x + width;
@@ -385,8 +373,8 @@ void SetPolyRect(POLY_GT4* poly, s32 x, s32 y, s32 width, s32 height) {
     poly->y3 = y + height;
 }
 
-void func_80107360(POLY_GT4* poly, s32 x, s32 y, s32 width, s32 height, s32 u,
-                   s32 v) {
+void SetTexturedPrimRect(
+    Primitive* poly, s32 x, s32 y, s32 width, s32 height, s32 u, s32 v) {
     poly->x0 = x;
     poly->y0 = y;
     poly->x1 = x + width;

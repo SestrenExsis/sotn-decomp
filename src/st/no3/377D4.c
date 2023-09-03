@@ -9,7 +9,7 @@
 // vase in the room with the door to the caverns
 void EntityCavernDoorVase(Entity* arg0) {
     s32 temp_v0;
-    ObjInit2* temp_s0 = &D_80180BFC[arg0->subId];
+    ObjInit2* temp_s0 = &D_80180BFC[arg0->params];
 
     if (arg0->step == 0) {
         InitializeEntity(D_80180B00);
@@ -29,7 +29,62 @@ void EntityCavernDoorVase(Entity* arg0) {
     AnimateEntity(temp_s0->unk10, arg0);
 }
 
-INCLUDE_ASM("asm/us/st/no3/nonmatchings/377D4", EntityUnkId12);
+void EntityUnkId12(Entity* entity) {
+    s32 ret;
+    u16* temp_v0_2;
+    u16 temp_s1 = entity->params;
+    u16 phi_v1;
+    u16 unk;
+
+    entity->unk6D[0] = 0;
+
+    if (entity->step != 0) {
+        switch (temp_s1) {
+        case 4:
+        case 5:
+            if (g_CurrentRoom.x != 0) {
+                return;
+            }
+            break;
+
+        case 6:
+            if (g_pads->pressed & PAD_TRIANGLE) {
+                g_CurrentRoom.x = 0;
+                g_CurrentRoom.width = 1280;
+                entity->step++;
+                return;
+            }
+            break;
+        }
+
+        if (entity->unk44 != 0) {
+            ret = GetSideToPlayer();
+            phi_v1 = entity->ext.generic.unk7C.s;
+            if (phi_v1 != 0) {
+                phi_v1 = (ret & 2) * 2;
+            } else {
+                phi_v1 = (ret & 1) * 4;
+            }
+            unk = 8;
+            temp_s1 = (temp_s1 * unk) + phi_v1;
+            temp_v0_2 = &D_80180DD0[temp_s1];
+            g_CurrentRoom.x = *(temp_v0_2++);
+            g_CurrentRoom.y = *(temp_v0_2++);
+            g_CurrentRoom.width = *(temp_v0_2++);
+            g_CurrentRoom.height = *(temp_v0_2++);
+        }
+    } else {
+        InitializeEntity(D_80180AF4);
+        entity->ext.generic.unk7C.s = D_80180DC8[temp_s1];
+        if (entity->ext.generic.unk7C.s != 0) {
+            entity->hitboxWidth = D_80180DC0[temp_s1];
+            entity->hitboxHeight = 16;
+        } else {
+            entity->hitboxWidth = 16;
+            entity->hitboxHeight = D_80180DC0[temp_s1];
+        }
+    }
+}
 
 extern u16 g_eBreakableInit[];
 extern u8* g_eBreakableAnimations[8];
@@ -38,7 +93,7 @@ extern u8 g_eBreakableExplosionTypes[];
 extern u16 g_eBreakableanimSets[];
 extern u8 g_eBreakableBlendModes[];
 void EntityBreakable(Entity* entity) {
-    u16 breakableType = entity->subId >> 0xC;
+    u16 breakableType = entity->params >> 0xC;
     if (entity->step) {
         AnimateEntity(g_eBreakableAnimations[breakableType], entity);
         if (entity->unk44) { // If the candle is destroyed
@@ -47,8 +102,8 @@ void EntityBreakable(Entity* entity) {
             entityDropItem =
                 AllocEntity(D_8007D858, &D_8007D858[MaxEntityCount]);
             if (entityDropItem != NULL) {
-                CreateEntityFromCurrentEntity(ENTITY_EXPLOSION, entityDropItem);
-                entityDropItem->subId =
+                CreateEntityFromCurrentEntity(E_EXPLOSION, entityDropItem);
+                entityDropItem->params =
                     g_eBreakableExplosionTypes[breakableType];
             }
             ReplaceBreakableWithItemDrop(entity);
@@ -85,18 +140,438 @@ void EntityUnkId16(Entity* self) {
 INCLUDE_ASM("asm/us/st/no3/nonmatchings/377D4", EntityBackgroundLightning);
 
 // window that opens and shuts in the background
-INCLUDE_ASM("asm/us/st/no3/nonmatchings/377D4", EntityShuttingWindow);
+void EntityShuttingWindow(Entity* self) {
+    Primitive* prim;
+    s16 primIndex;
+    SVECTOR svec;
+    SVEC4* svec4;
+    VECTOR vec;
+    MATRIX mtx;
+    s32 flag;
+    s32 p;
+    s32 i;
+
+    switch (self->step) {
+    case 0:
+        InitializeEntity(g_InitializeEntityData0);
+        primIndex = g_api.AllocPrimitives(PRIM_GT4, 2);
+        if (primIndex == -1) {
+            DestroyEntity(self);
+            return;
+        }
+        prim = &g_PrimBuf[primIndex];
+        self->primIndex = primIndex;
+        self->ext.shuttingWindow.prim = prim;
+        self->flags |= FLAG_HAS_PRIMS;
+        while (prim != NULL) {
+            prim->tpage = 0xF;
+            prim->clut = 0xD;
+            prim->u0 = prim->u2 = 0x9C;
+            prim->u1 = prim->u3 = 0x84;
+            prim->v1 = 4;
+            prim->v0 = 4;
+            prim->v2 = prim->v3 = 0x7C;
+            prim->priority = 0x5F;
+            prim->blendMode = 2;
+            prim = prim->next;
+        }
+
+    case 1:
+        self->ext.shuttingWindow.unk80 += 8;
+        if (self->ext.shuttingWindow.unk80 > 0x300) {
+            self->ext.shuttingWindow.unk80 = 0x300;
+            self->ext.shuttingWindow.unk82 = 0;
+            self->step++;
+        }
+        break;
+
+    case 2:
+        self->ext.shuttingWindow.unk80 += self->ext.shuttingWindow.unk82;
+        self->ext.shuttingWindow.unk82 -= 4;
+        if (self->ext.shuttingWindow.unk80 < 0) {
+            func_801CAD28(NA_SE_EV_WINDOW_LATCH);
+            self->ext.shuttingWindow.unk80 = 0;
+            self->ext.shuttingWindow.timer = 32;
+            self->step++;
+        }
+        break;
+
+    case 3:
+        if (--self->ext.shuttingWindow.timer == 0) {
+            self->step = 1;
+        }
+        break;
+    }
+    SetGeomScreen(0x400);
+    SetGeomOffset(self->posX.i.hi, self->posY.i.hi);
+
+    svec4 = D_80181024;
+    prim = self->ext.shuttingWindow.prim;
+
+    for (i = 0; i < 2; svec4++, i++) {
+        svec.vx = 0;
+        if (i != 0) {
+            svec.vy = self->ext.shuttingWindow.unk80;
+        } else {
+            svec.vy = -self->ext.shuttingWindow.unk80;
+        }
+        svec.vz = 0;
+        RotMatrix(&svec, &mtx);
+        if (i == 0) {
+            vec.vx = -0x18;
+        } else {
+            vec.vx = 0x19;
+        }
+        vec.vy = 0;
+        vec.vz = 0x400;
+        TransMatrix(&mtx, &vec);
+        SetRotMatrix(&mtx);
+        SetTransMatrix(&mtx);
+        RotTransPers4(svec4->v0, svec4->v1, svec4->v2, svec4->v3,
+                      (long*)&prim->x0, (long*)&prim->x1, (long*)&prim->x2,
+                      (long*)&prim->x3, (long*)&p, (long*)&flag);
+        prim = prim->next;
+    }
+}
 
 // main door to the castle that closes during intro
-INCLUDE_ASM("asm/us/st/no3/nonmatchings/377D4", EntityCastleDoor);
+void EntityCastleDoor(Entity* self) {
+    SVECTOR sVec1;
+    VECTOR vec1;
+    MATRIX mtx1;
+    MATRIX mtx2;
+    CVECTOR cVec1;
+    CVECTOR cVec2;
+    SVECTOR sVec2;
+    long sxy2, sxy3, p;
+    Primitive* prim;
+    SVECTOR** var_s5;
+    SVEC4* var_s6;
+    s16 primIndex;
+    s32 temp_s3;
+    s32 tilePos;
+    s32 i;
+    u16* tilePtr;
+    u8* var_a0;
+
+    sVec2 = D_801B73E0;
+
+    switch (self->step) {
+    case 0:
+        InitializeEntity(D_80180ADC);
+        primIndex = g_api.AllocPrimitives(PRIM_GT4, 3);
+        if (primIndex == -1) {
+            DestroyEntity(self);
+            return;
+        }
+        prim = &g_PrimBuf[primIndex];
+        var_a0 = D_80181118;
+        self->primIndex = primIndex;
+        self->ext.castleDoor.prim = prim;
+        self->flags |= FLAG_HAS_PRIMS;
+
+        for (i = 0; i < 3; i++) {
+            prim->tpage = 0xF;
+            prim->clut = 0x41;
+            prim->priority = 0x6A;
+            prim->blendMode = 2;
+            //! FAKE:
+            tilePos = prim->u2 = *var_a0++;
+            prim->u0 = tilePos;
+
+            prim->u1 = prim->u3 = *var_a0;
+            prim->v0 = prim->v1 = 1;
+            prim->v2 = prim->v3 = 0x81;
+            prim = prim->next;
+            var_a0++;
+        }
+        if (D_8003BDEC[52] != 0) {
+            self->ext.castleDoor.rotAngle = 0;
+            self->step = 5;
+        }
+        break;
+
+    case 1:
+        tilePos = 0x445;
+        for (i = 0, tilePtr = D_80181120; i < 8; tilePtr++, i++) {
+            g_CurrentRoomTileLayout.fg[tilePos] = *tilePtr;
+            tilePos += 0x20;
+        }
+        self->ext.castleDoor.rotAngle = -0x380;
+        self->ext.castleDoor.timer = 32;
+        self->step = 4;
+        D_8003BDEC[52] = 1;
+        break;
+
+    case 2:
+        self->ext.castleDoor.rotAngle -= 8;
+        if (self->ext.castleDoor.rotAngle < -0x380) {
+            self->ext.castleDoor.rotAngle = -0x380;
+            self->ext.castleDoor.timer = 128;
+            self->step++;
+        }
+        break;
+
+    case 3:
+        if (--self->ext.castleDoor.timer == 0) {
+            self->step++;
+        }
+        break;
+
+    case 4:
+        self->ext.castleDoor.rotAngle += 0x10;
+        if (self->ext.castleDoor.rotAngle > 0) {
+            self->ext.castleDoor.rotAngle = 0;
+            self->step += 2;
+            g_api.PlaySfx(0x63D);
+            tilePos = 0x445;
+            for (i = 0, tilePtr = D_80181130; i < 8; tilePtr++, i++) {
+                g_CurrentRoomTileLayout.fg[tilePos] = *tilePtr;
+                tilePos += 0x20;
+            }
+        }
+        break;
+
+    case 5:
+        self->step++;
+        tilePos = 0x445;
+        for (i = 0, tilePtr = D_80181130; i < 8; tilePtr++, i++) {
+            g_CurrentRoomTileLayout.fg[tilePos] = *tilePtr;
+            tilePos += 0x20;
+        }
+        break;
+    }
+    SetGeomScreen(768);
+    SetGeomOffset(self->posX.i.hi, self->posY.i.hi);
+    sVec1.vx = 0;
+    sVec1.vy = self->ext.castleDoor.rotAngle;
+    sVec1.vz = 0;
+    RotMatrix(&sVec2, &mtx1);
+    RotMatrixY(sVec1.vy, &mtx1);
+    vec1.vx = 0;
+    vec1.vy = 0;
+    vec1.vz = 0x334;
+    TransMatrix(&mtx1, &vec1);
+    SetRotMatrix(&mtx1);
+    SetTransMatrix(&mtx1);
+    SetBackColor(128, 128, 128);
+    cVec1.b = cVec1.g = cVec1.r = 128;
+    cVec1.cd = 4;
+    cVec2.b = cVec2.g = cVec2.r = 64;
+    cVec2.cd = 4;
+    RotMatrix(&sVec1, &mtx2);
+    SetColorMatrix(&D_801810D4);
+    SetLightMatrix(&mtx2);
+
+    prim = self->ext.prim;
+    var_s6 = &D_801810A4;
+    var_s5 = &D_8018110C;
+    for (i = 0; i < 3; var_s6++, var_s5++, i++) {
+        temp_s3 = RotAverageNclip4(
+            var_s6->v0, var_s6->v1, var_s6->v2, var_s6->v3, (long*)&prim->x0,
+            (long*)&prim->x1, (long*)&prim->x2, (long*)&prim->x3, &sxy2, &sxy3,
+            &p);
+        NormalColorCol(*var_s5, &cVec1, (CVECTOR*)&prim->r0);
+        LOW(prim->r1) = LOW(prim->r0);
+        LOW(prim->r2) = LOW(prim->r0);
+        LOW(prim->r3) = LOW(prim->r0);
+
+        if (i != 0) {
+            NormalColorCol(*var_s5, &cVec2, (CVECTOR*)&prim->r0);
+            LOW(prim->r2) = LOW(prim->r0);
+        }
+
+        if (temp_s3 <= 0) {
+            prim->blendMode = BLEND_VISIBLE;
+        } else {
+            prim->blendMode = 6;
+        }
+        prim = prim->next;
+    }
+}
 
 // bushes in parallax background
 INCLUDE_ASM("asm/us/st/no3/nonmatchings/377D4", EntityBackgroundBushes);
 
-INCLUDE_ASM("asm/us/st/no3/nonmatchings/377D4", EntityUnkId1C);
+void EntityUnkId1C(Entity* self, s16 primIndex) {
+    volatile char pad[8]; //! FAKE
+    Primitive* prim;
+    VECTOR vec;
+    MATRIX mtx;
+    long sxy;
+    long p;
+    long flag;
+    s32 temp_s3;
+    s32 temp_a1;
+    s32 temp_a2;
+    s32 var_v1;
+
+    if (self->step == 0) {
+        InitializeEntity(D_80180B18);
+        primIndex = g_api.AllocPrimitives(PRIM_GT4, 32);
+        if (primIndex == -1) {
+            DestroyEntity(self);
+            return;
+        }
+        prim = &g_PrimBuf[primIndex];
+        self->primIndex = primIndex;
+        self->ext.prim = prim;
+        self->flags |= FLAG_HAS_PRIMS;
+        while (prim != NULL) {
+            prim->tpage = 0xF;
+            prim->clut = D_801811E0[self->params % 16];
+            prim->u0 = prim->u2 = 0xBF;
+            prim->u1 = prim->u3 = 0xFF;
+            prim->v0 = prim->v1 = 0x80;
+            prim->v2 = prim->v3 = 0xB8;
+            prim->priority = 0x5A;
+            prim->blendMode = BLEND_VISIBLE;
+            prim = prim->next;
+        }
+    }
+    var_v1 = D_801811D0[self->params % 16][0];
+    temp_s3 = var_v1;
+
+    SetGeomScreen(0x400);
+    if (self->params & 0x100) {
+        SetGeomOffset(0x80, 0x98);
+    } else {
+        SetGeomOffset(0x80, 0x80);
+    }
+
+    RotMatrix(D_801811F0, &mtx);
+    vec.vx = self->posX.i.hi - 128;
+    vec.vy = self->posY.i.hi - 128;
+    vec.vz = temp_s3 + 0x400;
+    TransMatrix(&mtx, &vec);
+    SetRotMatrix(&mtx);
+    SetTransMatrix(&mtx);
+    RotTransPers(D_801811F0, &sxy, &p, &flag);
+    temp_a1 = sxy & 0xFFFF;
+    temp_a2 = sxy >> 0x10;
+
+    if (temp_a1 < 0) {
+        var_v1 = temp_a1 + 0x3F;
+    } else {
+        var_v1 = temp_a1;
+    }
+
+    prim = self->ext.prim;
+    temp_a1 -= (var_v1 >> 6) << 6;
+    temp_a1 -= 64;
+    temp_a1 -= D_801811D0[self->params % 16][1];
+    while (temp_a1 < 320) {
+        prim->x1 = prim->x3 = temp_a1 + 64;
+        prim->x0 = prim->x2 = temp_a1;
+        prim->y0 = prim->y1 = temp_a2 - 56;
+        prim->y2 = prim->y3 = temp_a2;
+        prim->blendMode = 2;
+        prim = prim->next;
+        temp_a1 += 64;
+    }
+
+    while (prim != NULL) {
+        prim->blendMode = BLEND_VISIBLE;
+        prim = prim->next;
+    }
+}
 
 // transparent water "plane" seen in the merman room
-INCLUDE_ASM("asm/us/st/no3/nonmatchings/377D4", EntityTransparentWater);
+void EntityTransparentWater(Entity* self) {
+    Primitive* prim;
+    s16 primIndex;
+    u32 temp_a0;
+    s16 temp_t1;
+    s32 temp_v0;
+    u8* temp_v1;
+    u8* var_a0;
+    u8 temp_t2;
+    s32 var_a3;
+
+    switch (self->step) {
+    case 0:
+        InitializeEntity(D_80180ADC);
+        self->ext.transparentWater.unk80 = 4;
+        primIndex = g_api.AllocPrimitives(PRIM_GT4, 16);
+        if (primIndex == -1) {
+            DestroyEntity(self);
+            return;
+        }
+        prim = &g_PrimBuf[primIndex];
+        self->primIndex = primIndex;
+        self->ext.transparentWater.prim = prim;
+        self->flags |= FLAG_HAS_PRIMS;
+        while (prim != NULL) {
+            prim->tpage = 0xF;
+            prim->clut = 0x18;
+            prim->priority = 0xB0;
+            prim->blendMode = 8;
+            prim = prim->next;
+        }
+        break;
+
+    case 1:
+        var_a0 = &D_801811F8;
+        while (*var_a0 != 0xFF) {
+            D_8003C104[var_a0[0]] = D_8003C104[var_a0[2] + 0x200];
+            var_a0 += 4;
+        }
+
+        if (--self->ext.transparentWater.unk80 == 0) {
+            self->ext.transparentWater.unk80 = 4;
+            self->step++;
+        }
+        break;
+
+    case 2:
+        var_a0 = &D_801811F8;
+        while (*var_a0 != 0xFF) {
+            D_8003C104[var_a0[0]] = D_8003C104[var_a0[3] + 0x200];
+            var_a0 += 4;
+        }
+
+        if (--self->ext.transparentWater.unk80 == 0) {
+            self->ext.transparentWater.unk80 = 4;
+            self->step--;
+        }
+        break;
+    }
+
+    AnimateEntity(D_80181224, self);
+
+    var_a3 = -1 * g_Camera.posX.i.hi % 38;
+    var_a3 += 304;
+    if (self->params != 0) {
+        var_a3 = 96;
+    }
+
+    prim = self->ext.transparentWater.prim;
+    temp_a0 = self->posY.i.hi;
+    temp_v1 = D_80181218;
+    temp_v1 += 4 * self->animCurFrame;
+    temp_v0 = temp_v1[0];
+    temp_v1 = temp_v1[1];
+    while (var_a3 > 0) {
+        temp_t2 = temp_v0 + 0x26;
+        temp_t1 = temp_v1 + 0x3E;
+        prim->x1 = prim->x3 = var_a3;
+        var_a3 -= 0x26;
+        prim->x0 = prim->x2 = var_a3;
+        prim->u0 = prim->u2 = temp_v0;
+        prim->u1 = prim->u3 = temp_t2;
+        prim->v0 = prim->v1 = temp_v1;
+        prim->v2 = prim->v3 = temp_t1;
+        prim->y0 = prim->y1 = temp_a0;
+        prim->y2 = prim->y3 = temp_a0 + 0x3E;
+        prim->blendMode = 0x33;
+        prim = prim->next;
+    }
+
+    while (prim != NULL) {
+        prim->blendMode = 8;
+        prim = prim->next;
+    }
+}
 
 INCLUDE_ASM("asm/us/st/no3/nonmatchings/377D4", func_801B94F0);
 
@@ -109,18 +584,18 @@ void EntityCavernDoorLever(Entity* entity) {
     case 0:
         InitializeEntity(D_80180B18);
         entity->animCurFrame = 18;
-        entity->unk1E = -0x200;
+        entity->rotAngle = -0x200;
         entity->unk19 |= 4;
         CreateEntityFromEntity(0x1E, entity, &entity[1]);
         if (D_8003BDEC[0x30] != 0) {
-            entity->unk1E = 0;
+            entity->rotAngle = 0;
         }
 
     case 1:
         if (entity[1].ext.generic.unk84.S8.unk0 != 0) {
-            entity->unk1E += 4;
-            if (entity->unk1E > 0) {
-                entity->unk1E = 0;
+            entity->rotAngle += 4;
+            if (entity->rotAngle > 0) {
+                entity->rotAngle = 0;
                 if (D_8003BDEC[0x30] == 0) {
                     g_api.PlaySfx(0x675);
                 }
@@ -134,8 +609,8 @@ void EntityCavernDoorLever(Entity* entity) {
 
     posX = entity->posX.val;
     posY = entity->posY.val;
-    posX += rcos(entity->unk1E) * 0x280;
-    posY += rsin(entity->unk1E) * 0x280;
+    posX += rcos(entity->rotAngle) * 0x280;
+    posY += rsin(entity->rotAngle) * 0x280;
     entity[1].posX.val = posX;
     entity[1].posY.val = posY;
 }
@@ -170,7 +645,7 @@ void EntityCavernDoorPlatform(Entity* self) {
 
 // door blocking way to the Underground Caverns
 void EntityCavernDoor(Entity* self) {
-    s16 firstPolygonIndex;
+    s16 primIndex;
     u16* tileLayoutPtr;
     Entity* entity;
     POLY_GT4* poly;
@@ -191,16 +666,16 @@ void EntityCavernDoor(Entity* self) {
             self->step = 128;
             self->animCurFrame = 0;
         } else {
-            firstPolygonIndex = g_api.AllocPrimitives(1, 64);
-            if (firstPolygonIndex == -1) {
+            primIndex = g_api.AllocPrimitives(PRIM_TILE, 64);
+            if (primIndex == -1) {
                 DestroyEntity(self);
                 return;
             }
 
-            poly = &g_PrimBuf[firstPolygonIndex];
-            self->firstPolygonIndex = firstPolygonIndex;
+            poly = &g_PrimBuf[primIndex];
+            self->primIndex = primIndex;
             *(s32*)&self->ext.generic.unk7C = poly;
-            self->flags |= FLAG_FREE_POLYGONS;
+            self->flags |= FLAG_HAS_PRIMS;
             while (poly != NULL) {
                 poly->u0 = poly->v0 = 1;
                 poly->r0 = 64;
@@ -228,7 +703,7 @@ void EntityCavernDoor(Entity* self) {
         break;
 
     case 2:
-        self->posY.val += 0x6000;
+        self->posY.val += FIX(0.375);
         if (++self->ext.generic.unk80.modeS32 & 1) {
             self->posX.i.hi++;
         } else {
@@ -266,7 +741,7 @@ void EntityCavernDoor(Entity* self) {
                     entity->posY.i.hi = 156;
                     entity->posX.i.hi += -8 + (Random() & 15);
                     entity->zPriority = self->zPriority + 2;
-                    entity->subId = 0x10;
+                    entity->params = 0x10;
                     entity->unk19 |= 3;
                     entity->unk1A = entity->unk1C = 192;
                 }
@@ -275,7 +750,7 @@ void EntityCavernDoor(Entity* self) {
         break;
     }
 
-    if (self->flags & FLAG_FREE_POLYGONS) {
+    if (self->flags & FLAG_HAS_PRIMS) {
         for (poly = *(s32*)&self->ext.generic.unk7C; poly != NULL;
              poly = (POLY_GT4*)poly->tag) {
             if (poly->p3 != 0) {
@@ -312,7 +787,7 @@ void func_801B9C44(WeightSelect weight) {
     posY -= 32;
 
     while (prim != 0) {
-        prim->blendMode = 8;
+        prim->blendMode = BLEND_VISIBLE;
         prim = prim->next;
     }
 }
@@ -336,7 +811,7 @@ void EntityClickSwitch(Entity* entity) {
     case 1:
         if (temp_a0 != 0) {
             player->posY.i.hi++;
-            entity->posY.val += 0xC000;
+            entity->posY.val += FIX(0.75);
             if ((g_Camera.posY.i.hi + entity->posY.i.hi) > 160) {
                 entity->posY.i.hi = 160 - g_Camera.posY.i.hi;
                 g_api.PlaySfx(NA_SE_EV_SWITCH_CLICK);
@@ -350,7 +825,7 @@ void EntityClickSwitch(Entity* entity) {
 
 // smaller weight blocking path near cube of zoe
 void EntityPathBlockSmallWeight(Entity* self) {
-    s16 firstPolygonIndex;
+    s16 primIndex;
     POLY_GT4* poly;
     s32 var_a1;
     s32 i;
@@ -361,16 +836,16 @@ void EntityPathBlockSmallWeight(Entity* self) {
         self->animCurFrame = 8;
         self->zPriority = 0x5E;
 
-        firstPolygonIndex = g_api.AllocPrimitives(4, 8);
-        if (firstPolygonIndex == -1) {
+        primIndex = g_api.AllocPrimitives(PRIM_GT4, 8);
+        if (primIndex == -1) {
             DestroyEntity(self);
             return;
         }
 
-        poly = &g_PrimBuf[firstPolygonIndex];
-        self->firstPolygonIndex = firstPolygonIndex;
+        poly = &g_PrimBuf[primIndex];
+        self->primIndex = primIndex;
         *(s32*)&self->ext.generic.unk7C = poly;
-        self->flags |= FLAG_FREE_POLYGONS;
+        self->flags |= FLAG_HAS_PRIMS;
 
         while (poly != NULL) {
             poly->tpage = 0xF;
@@ -397,7 +872,7 @@ void EntityPathBlockSmallWeight(Entity* self) {
         break;
 
     case 2:
-        self->posY.val += 0x8000;
+        self->posY.val += FIX(0.5);
         if ((self->posY.i.hi + g_Camera.posY.i.hi) >= 175) {
             self->posY.i.hi = 175 - g_Camera.posY.i.hi;
             self->step++;
@@ -424,7 +899,7 @@ void EntityPathBlockSmallWeight(Entity* self) {
 // taller weight blocking path near cube of zoe
 void EntityPathBlockTallWeight(Entity* self) {
     POLY_GT4* poly;
-    s16 firstPolygonIndex;
+    s16 primIndex;
     s32 temp_a2;
     s32 var_a1;
     s32 var_v0;
@@ -437,15 +912,15 @@ void EntityPathBlockTallWeight(Entity* self) {
         self->animCurFrame = 7;
         self->zPriority = 0x5E;
 
-        firstPolygonIndex = g_api.AllocPrimitives(4, 8);
-        if (firstPolygonIndex == -1) {
+        primIndex = g_api.AllocPrimitives(PRIM_GT4, 8);
+        if (primIndex == -1) {
             DestroyEntity(self);
             return;
         }
-        poly = &g_PrimBuf[firstPolygonIndex];
-        self->firstPolygonIndex = firstPolygonIndex;
+        poly = &g_PrimBuf[primIndex];
+        self->primIndex = primIndex;
         *(s32*)&self->ext.generic.unk7C = poly;
-        self->flags |= FLAG_FREE_POLYGONS;
+        self->flags |= FLAG_HAS_PRIMS;
 
         while (poly != NULL) {
             poly->tpage = 0xF;
@@ -472,7 +947,7 @@ void EntityPathBlockTallWeight(Entity* self) {
         break;
 
     case 2:
-        self->posY.val -= 0x8000;
+        self->posY.val -= FIX(0.5);
         temp = self->posY.i.hi + g_Camera.posY.i.hi;
         if (temp <= -16) {
             self->posY.i.hi = -16 - g_Camera.posY.i.hi;
@@ -513,7 +988,7 @@ void EntityTrapDoor(Entity* entity) {
         entity->zPriority = 0x6A;
         entity->hitboxWidth = 16;
         entity->hitboxHeight = 4;
-        entity->unk3C = 1;
+        entity->hitboxState = 1;
 
         if (g_TrapDoorFlag == 0) {
             if (PLAYER.posY.val < entity->posY.val) {
@@ -532,7 +1007,7 @@ void EntityTrapDoor(Entity* entity) {
         }
 
     case 1:
-        if (entity->unk48 != 0) {
+        if (entity->hitFlags != 0) {
             g_TrapDoorFlag = 1;
             entity->step++;
         }
@@ -545,16 +1020,19 @@ void EntityTrapDoor(Entity* entity) {
 
 // left side of the breakable rock, drops pot roast
 void EntityMermanRockLeftSide(Entity* self) {
+    const int jewelSwordRoomUnlock = 51;
+    const int rockBroken = (1 << 0);
+    const int wolfFlag = (1 << 2);
     u16* tileLayoutPtr;
     Entity* newEntity;
     s32 tilePos;
-    u8* subId;
+    u8* params;
     s32 i;
 
     switch (self->step) {
     case 0:
         InitializeEntity(D_80180ADC);
-        self->unk3C = 2;
+        self->hitboxState = 2;
         self->hitboxWidth = 16;
         self->hitboxHeight = 24;
 
@@ -567,7 +1045,7 @@ void EntityMermanRockLeftSide(Entity* self) {
             tilePos += 0x30;
         }
 
-        if (D_8003BDEC[51] & 1) { /* 0 0 0 0 0 0 0 1 = Half broken */
+        if (D_8003BDEC[jewelSwordRoomUnlock] & rockBroken) {
             tileLayoutPtr = &D_80181264;
             tilePos = 0x1F1;
             for (i = 0; i < 3; i++) {
@@ -576,13 +1054,13 @@ void EntityMermanRockLeftSide(Entity* self) {
                 tileLayoutPtr++;
                 tilePos += 0x30;
             }
-            self->unk3C = 1;
+            self->hitboxState = 1;
             self->step = 2;
         }
         break;
 
     case 1:
-        if (self->unk48 != 0) {
+        if (self->hitFlags != 0) {
             tileLayoutPtr = &D_80181258[self->ext.generic.unk84.S16.unk0 * 6];
             tilePos = 0x1F1;
             for (i = 0; i < 3; i++) {
@@ -596,22 +1074,22 @@ void EntityMermanRockLeftSide(Entity* self) {
 
             newEntity = AllocEntity(D_8007D858, &D_8007D858[32]);
             if (newEntity != NULL) {
-                CreateEntityFromEntity(2, self, newEntity);
-                newEntity->subId = 0x13;
+                CreateEntityFromEntity(E_EXPLOSION, self, newEntity);
+                newEntity->params = 0x13;
                 newEntity->zPriority = 0xA9;
                 newEntity->posX.i.hi += self->ext.generic.unk84.S16.unk0 * 16;
                 newEntity->posY.i.hi += 16;
             }
 
-            subId = &D_80181344[self->ext.generic.unk84.S16.unk0 * 3];
+            params = &D_80181344[self->ext.generic.unk84.S16.unk0 * 3];
 
             for (i = 0; i < 3; i++) {
                 newEntity = AllocEntity(D_8007D858, &D_8007D858[32]);
                 if (newEntity != NULL) {
-                    CreateEntityFromEntity(0x27, self, newEntity);
-                    newEntity->subId = *subId++;
-                    newEntity->accelerationX = -0x8000 - (Random() << 8);
-                    newEntity->accelerationY = -Random() * 0x100;
+                    CreateEntityFromEntity(E_FALLING_ROCK_2, self, newEntity);
+                    newEntity->params = *params++;
+                    newEntity->velocityX = -0x8000 - (Random() << 8);
+                    newEntity->velocityY = -Random() * 0x100;
                     newEntity->posY.i.hi += -16 + (i * 16);
                 }
             }
@@ -621,18 +1099,19 @@ void EntityMermanRockLeftSide(Entity* self) {
         if (self->ext.generic.unk84.S16.unk0 >= 2) {
             newEntity = AllocEntity(D_8007A958, &D_8007A958[32]);
             if (newEntity != NULL) {
-                CreateEntityFromEntity(0xA, self, newEntity);
-                newEntity->subId = 0x43;
+                CreateEntityFromEntity(E_EQUIP_ITEM_DROP, self, newEntity);
+                newEntity->params = ITEM_POT_ROAST;
             }
-            D_8003BDEC[51] |= 1; /* 0 0 0 0 0 0 0 1 = Half broken */
-            self->unk3C = 1;
+            D_8003BDEC[jewelSwordRoomUnlock] |= rockBroken;
+            self->hitboxState = 1;
             self->step++;
         }
         break;
 
     case 2:
-        if ((self->unk48 != 0) && (g_Player.unk0C & 4)) {
-            D_8003BDEC[51] |= 4; /* 0 0 0 0 0 1 0 0 = Broken */
+        if ((self->hitFlags != 0) &&
+            (g_Player.unk0C & PLAYER_STATUS_WOLF_FORM)) {
+            D_8003BDEC[jewelSwordRoomUnlock] |= wolfFlag;
         }
         break;
     }
@@ -640,16 +1119,19 @@ void EntityMermanRockLeftSide(Entity* self) {
 
 // right side of the merman room rock, breaks when hit
 void EntityMermanRockRightSide(Entity* self) {
+    const int jewelSwordRoomUnlock = 51;
+    const int rockBroken = (1 << 1);
+    const int batFlag = (1 << 3);
     u16* tileLayoutPtr;
     Entity* newEntity;
     s32 tilePos;
-    u8* subId;
+    u8* params;
     s32 i;
 
     switch (self->step) {
     case 0:
         InitializeEntity(D_80180ADC);
-        self->unk3C = 2;
+        self->hitboxState = 2;
         self->hitboxWidth = 16;
         self->hitboxHeight = 24;
 
@@ -662,7 +1144,7 @@ void EntityMermanRockRightSide(Entity* self) {
             tilePos += 0x30;
         }
 
-        if (D_8003BDEC[51] & 2) { /* 0 0 0 0 0 0 1 0 = Half broken */
+        if (D_8003BDEC[jewelSwordRoomUnlock] & rockBroken) {
             tileLayoutPtr = &D_801812A0;
             tilePos = 0x1FD;
             for (i = 0; i < 3; i++) {
@@ -671,13 +1153,13 @@ void EntityMermanRockRightSide(Entity* self) {
                 tileLayoutPtr++;
                 tilePos += 0x30;
             }
-            self->unk3C = 1;
+            self->hitboxState = 1;
             self->step = 2;
         }
         break;
 
     case 1:
-        if (self->unk48 != 0) {
+        if (self->hitFlags != 0) {
             tileLayoutPtr = &D_80181294[(self->ext.generic.unk84.S16.unk0 * 6)];
             tilePos = 0x1FD;
             for (i = 0; i < 3; i++) {
@@ -692,21 +1174,21 @@ void EntityMermanRockRightSide(Entity* self) {
             newEntity = AllocEntity(D_8007D858, &D_8007D858[32]);
             if (newEntity != NULL) {
                 CreateEntityFromEntity(2, self, newEntity);
-                newEntity->subId = 0x13;
+                newEntity->params = 0x13;
                 newEntity->zPriority = 0xA9;
                 newEntity->posX.i.hi -= self->ext.generic.unk84.S16.unk0 * 16;
                 newEntity->posY.i.hi += 16;
             }
 
-            subId = &D_80181344[self->ext.generic.unk84.S16.unk0 * 3];
+            params = &D_80181344[self->ext.generic.unk84.S16.unk0 * 3];
 
             for (i = 0; i < 3; i++) {
                 newEntity = AllocEntity(D_8007D858, &D_8007D858[32]);
                 if (newEntity != NULL) {
-                    CreateEntityFromEntity(0x27, self, newEntity);
-                    newEntity->subId = *subId++;
-                    newEntity->accelerationX = (Random() << 8) + 0x8000;
-                    newEntity->accelerationY = -Random() * 0x100;
+                    CreateEntityFromEntity(E_FALLING_ROCK_2, self, newEntity);
+                    newEntity->params = *params++;
+                    newEntity->velocityX = (Random() << 8) + 0x8000;
+                    newEntity->velocityY = -Random() * 0x100;
                     newEntity->facing = 1;
                     newEntity->posY.i.hi += -16 + (i * 16);
                 }
@@ -715,15 +1197,16 @@ void EntityMermanRockRightSide(Entity* self) {
         }
 
         if (self->ext.generic.unk84.S16.unk0 >= 2) {
-            D_8003BDEC[51] |= 2; /* 0 0 0 0 0 0 1 0 = Half broken */
-            self->unk3C = 1;
+            D_8003BDEC[jewelSwordRoomUnlock] |= rockBroken;
+            self->hitboxState = 1;
             self->step++;
         }
         break;
 
     case 2:
-        if ((self->unk48 != 0) && (g_Player.unk0C & 1)) {
-            D_8003BDEC[51] |= 8; /* 0 0 0 0 1 0 0 0 = Broken */
+        if ((self->hitFlags != 0) &&
+            (g_Player.unk0C & PLAYER_STATUS_BAT_FORM)) {
+            D_8003BDEC[jewelSwordRoomUnlock] |= batFlag;
         }
         break;
     }
@@ -775,7 +1258,7 @@ void EntityUnkId26(Entity* self) {
 
 // falling rock that breaks into dust
 void EntityFallingRock2(Entity* self) {
-    s32 animFrame = self->subId & 0xF;
+    s32 animFrame = self->params & 0xF;
     Collider collider;
     Entity* newEntity;
     s32 temp_a0;
@@ -793,45 +1276,181 @@ void EntityFallingRock2(Entity* self) {
 
     case 1:
         MoveEntity();
-        self->accelerationY += 0x4000;
-        self->unk1E -= 0x20;
+        self->velocityY += FIX(0.25);
+        self->rotAngle -= 0x20;
         new_var2 = self->posY.i.hi;
         new_var2 += D_8018133C[animFrame];
         g_api.CheckCollision(self->posX.i.hi, new_var2, &collider, 0);
 
-        if (collider.unk0 & 1) {
-            if (self->accelerationY > 0x40000) {
+        if (collider.effects & EFFECT_SOLID) {
+            if (self->velocityY > FIX(4.0)) {
                 newEntity = AllocEntity(D_8007D858, &D_8007D858[32]);
                 if (newEntity != 0) {
                     CreateEntityFromEntity(2, self, newEntity);
-                    newEntity->subId = 0x11;
+                    newEntity->params = 0x11;
                     if (animFrame == 0) {
-                        newEntity->subId = 0x13;
+                        newEntity->params = 0x13;
                     }
                 }
                 DestroyEntity(self);
                 return;
             }
             self->posY.i.hi = self->posY.i.hi + collider.unk18;
-            temp_a0 = -self->accelerationY;
-            self->accelerationY = -self->accelerationY;
+            temp_a0 = -self->velocityY;
+            self->velocityY = -self->velocityY;
             if (temp_a0 < 0) {
                 var_a1 = temp_a0 + 7;
             } else {
                 var_a1 = temp_a0;
             }
-            self->accelerationY = temp_a0 - (var_a1 >> 3);
+            self->velocityY = temp_a0 - (var_a1 >> 3);
         }
         break;
     }
 }
 
-INCLUDE_ASM("asm/us/st/no3/nonmatchings/377D4", EntityUnkId5C);
+// ID 0x5C
+// Stairway piece you can break before Death encounter
+void EntityStairwayPiece(Entity* self, u8 arg1, u8 arg2, u8 arg3) {
+    const int stairwayPieceBroken = 56;
+    Primitive *prim, *prim2, *prim3;
+    Entity* newEntity;
+    Collider collider;
+    s16 primIndex;
+    s32 temp;
+    s16 x, y;
+    u8 v1;
+    s32 i;
+
+    switch (self->step) {
+    case 0:
+        InitializeEntity(D_80180ADC);
+        self->hitboxWidth = 8;
+        self->hitboxHeight = 8;
+        self->posX.i.hi = 1432 - g_Camera.posX.i.hi;
+        self->posY.i.hi = 200 - g_Camera.posY.i.hi;
+        self->hitPoints = 16;
+        if (D_8003BDEC[stairwayPieceBroken]) {
+            self->hitboxState = 0;
+            g_CurrentRoomTileLayout.fg[0x4D9] = 0x3EE;
+            g_CurrentRoomTileLayout.fg[0x539] = 0x3D2;
+            self->step = 32;
+            break;
+        }
+        self->hitboxState = 2;
+        g_CurrentRoomTileLayout.fg[0x4D9] = 0x408;
+        g_CurrentRoomTileLayout.fg[0x539] = 0x40D;
+        break;
+
+    case 1:
+        if (self->hitFlags != 0) {
+            g_api.PlaySfx(0x64B);
+        }
+
+        if (self->flags & 0x100) {
+            self->step++;
+        }
+        break;
+
+    case 2:
+        g_api.PlaySfx(0x644);
+        g_CurrentRoomTileLayout.fg[0x4D9] = 0x3EE;
+        g_CurrentRoomTileLayout.fg[0x539] = 0x3D2;
+        D_8003BDEC[stairwayPieceBroken] = true;
+
+        newEntity = AllocEntity(&g_Entities[160], &g_Entities[192]);
+        if (newEntity != NULL) {
+            CreateEntityFromEntity(E_EQUIP_ITEM_DROP, self, newEntity);
+            newEntity->params = ITEM_TURKEY;
+        }
+
+        newEntity = AllocEntity(&g_Entities[224], &g_Entities[256]);
+        if (newEntity != NULL) {
+            CreateEntityFromEntity(E_INTENSE_EXPLOSION, self, newEntity);
+            newEntity->params = 0x10;
+            newEntity->zPriority = self->zPriority + 1;
+            newEntity->posX.i.hi += 8;
+            newEntity->posY.i.hi += 8;
+        }
+
+        primIndex = g_api.AllocPrimitives(PRIM_GT4, 16);
+        if (primIndex == -1) {
+            DestroyEntity(self);
+            return;
+        }
+        prim = &g_PrimBuf[primIndex];
+        self->primIndex = primIndex;
+        self->ext.prim = prim;
+        self->flags |= FLAG_HAS_PRIMS;
+        func_801D6FCC(prim, primIndex);
+        v1 = D_80073088->gfxIndex[0x409];
+        arg1 = v1;
+        temp = D_80073088->gfxPage[0x409];
+        prim->clut = D_80073088->clut[0x409];
+        prim->tpage = temp + 8;
+        arg1 *= 16;
+        arg3 = 0xF;
+        arg3 = arg1 | arg3;
+        prim->u0 = prim->u2 = arg1;
+        arg2 = v1 & 0xF0 | 0xF;
+        prim->v0 = prim->v1 = v1 & 0xF0;
+        prim->u1 = prim->u3 = arg3;
+        prim->v2 = prim->v3 = arg2;
+        prim->next->x1 = self->posX.i.hi;
+        prim->next->y0 = self->posY.i.hi;
+        LOW(prim->next->u0) = 0xFFFF0000;
+        LOW(prim->next->r1) = 0xFFFF0000;
+        LOH(prim->next->r2) = 16;
+        LOH(prim->next->b2) = 16;
+        prim->priority = self->zPriority;
+        prim->blendMode = 2;
+        self->step++;
+
+    case 3:
+        prim = self->ext.prim;
+        prim2 = prim->next;
+        prim2->tpage -= 0x20;
+        prim2 = prim->next;
+        LOW(prim2->r1) += 0x2000;
+        func_801D6880(prim);
+        prim3 = prim->next;
+        x = prim3->x1;
+        y = prim3->y0;
+        g_api.CheckCollision(x, (s16)(y + 8), &collider, 0);
+        if (collider.effects & 1) {
+            self->posX.i.hi = x;
+            self->posY.i.hi = y - 4;
+            self->step++;
+        }
+        break;
+
+    case 4:
+        g_api.PlaySfx(NA_SE_EN_ROCK_BREAK);
+        newEntity = AllocEntity(&g_Entities[224], &g_Entities[256]);
+        if (newEntity != NULL) {
+            CreateEntityFromEntity(E_EXPLOSION, self, newEntity);
+            newEntity->params = 0x11;
+            newEntity->zPriority = self->zPriority + 1;
+        }
+
+        for (i = 0; i < 6; i++) {
+            newEntity = AllocEntity(&g_Entities[224], &g_Entities[256]);
+            if (newEntity != NULL) {
+                CreateEntityFromEntity(E_FALLING_ROCK, self, newEntity);
+                newEntity->params = Random() & 3;
+                if (newEntity->params == 3) {
+                    newEntity->params = 0;
+                }
+            }
+        }
+        DestroyEntity(self);
+    }
+}
 
 // falling rock with puff of smoke when it disappears. I think part of the
 // merman room breakable rock
 void EntityFallingRock(Entity* self) {
-    s32 animFrame = self->subId & 0xF;
+    s32 animFrame = self->params & 0xF;
     Collider collider;
     Entity* newEntity;
     s16 rndAngle;
@@ -846,27 +1465,27 @@ void EntityFallingRock(Entity* self) {
         self->unk19 |= 7;
         rnd = (Random() & 0x1F) + 16;
         rndAngle = (Random() * 6) + 0x900;
-        self->accelerationX = rnd * rcos(rndAngle);
-        self->accelerationY = rnd * rsin(rndAngle);
-        if (self->accelerationX > 0) {
+        self->velocityX = rnd * rcos(rndAngle);
+        self->velocityY = rnd * rsin(rndAngle);
+        if (self->velocityX > 0) {
             self->facing = 1;
         }
         break;
 
     case 1:
         MoveEntity();
-        self->accelerationY += 0x2000;
-        self->unk1E -= 0x20;
+        self->velocityY += FIX(0.125);
+        self->rotAngle -= 0x20;
 
-        g_api.CheckCollision(self->posX.i.hi, self->posY.i.hi + 8, &collider,
-                             0);
-        if (collider.unk0 & 1) {
+        g_api.CheckCollision(
+            self->posX.i.hi, self->posY.i.hi + 8, &collider, 0);
+        if (collider.effects & EFFECT_SOLID) {
             newEntity = AllocEntity(D_8007D858, &D_8007D858[32]);
             if (newEntity != NULL) {
                 CreateEntityFromEntity(6, self, newEntity);
-                newEntity->subId = 0x10;
+                newEntity->params = 0x10;
                 if (animFrame == 0) {
-                    newEntity->subId = 0x13;
+                    newEntity->params = 0x13;
                 }
             }
             DestroyEntity(self);
@@ -878,7 +1497,66 @@ void EntityFallingRock(Entity* self) {
 INCLUDE_ASM("asm/us/st/no3/nonmatchings/377D4", func_801BB548);
 
 // sky animation during death cutscene
-INCLUDE_ASM("asm/us/st/no3/nonmatchings/377D4", EntityDeathSkySwirl);
+void EntityDeathSkySwirl(Entity* self) {
+    Primitive* prim;
+    Primitive* prim2;
+    s16 primIndex;
+    SVECTOR sVec;
+    VECTOR vec;
+    MATRIX mtx;
+
+    if (self->step == 0) {
+        if (D_8003BDEC[53]) {
+            DestroyEntity(self);
+            return;
+        }
+        InitializeEntity(D_80180ADC);
+        primIndex = g_api.AllocPrimitives(PRIM_GT4, 65);
+        if (primIndex == -1) {
+            DestroyEntity(self);
+            return;
+        }
+        prim = &g_PrimBuf[primIndex];
+        self->primIndex = primIndex;
+        self->ext.deathSkySwirl.prim = prim;
+        self->flags |= FLAG_HAS_PRIMS;
+        prim->tpage = 0x12;
+        prim->clut = 0x1F;
+        prim->u0 = prim->u2 = 0;
+        prim->u1 = prim->u3 = 0xFF;
+        prim->v0 = prim->v1 = 0x80;
+        prim->v2 = prim->v3 = 0xFF;
+        prim->priority = 0x1F;
+        prim->blendMode = 0;
+    }
+    g_CurrentRoom.bg[0].D_800730F4 &= 0xFFFE;
+    self->ext.deathSkySwirl.unk84 -= 32;
+    SetGeomScreen(256);
+    SetGeomOffset(128, 192);
+    SetFogNear(256, 256);
+    SetFarColor(96, 96, 96);
+    sVec.vx = 0;
+    sVec.vy = self->ext.deathSkySwirl.unk84;
+    sVec.vz = 0;
+    RotMatrix(&sVec, &mtx);
+    vec.vy = -0xC0;
+    vec.vx = 0;
+    vec.vz = 0x200;
+    TransMatrix(&mtx, &vec);
+    SetRotMatrix(&mtx);
+    SetTransMatrix(&mtx);
+    prim = self->ext.deathSkySwirl.prim;
+    prim->blendMode = 4;
+
+    prim2 = prim->next;
+    prim2 = func_801BB548(&D_8018134C, &D_80181354, &D_8018135C, &D_80181364,
+                          prim, 3, prim2, 0x1F800000);
+    prim->blendMode = 8;
+    while (prim2 != NULL) {
+        prim2->blendMode = BLEND_VISIBLE;
+        prim2 = prim2->next;
+    }
+}
 
 void EntityUnkId29(Entity* self) {
     if (self->step == 0) {
@@ -898,9 +1576,9 @@ void EntityUnkId2A(Entity* entity) {
         InitializeEntity(D_80180B18);
         entity->zPriority = 0x29;
         entity->flags &= ~FLAG_UNK_08000000;
-        entity->animCurFrame = entity->subId + 0x22;
-        entity->posX.i.hi = D_8018139C[entity->subId << 1];
-        entity->posY.i.hi = D_8018139E[entity->subId << 1];
+        entity->animCurFrame = entity->params + 0x22;
+        entity->posX.i.hi = D_8018139C[entity->params << 1];
+        entity->posY.i.hi = D_8018139E[entity->params << 1];
         entity->ext.generic.unk80.modeS16.unk0 = 5;
     }
     entity->ext.generic.unk80.modeS16.unk0--;
@@ -928,7 +1606,7 @@ void EntitySwitch(Entity* entity) {
     case 1:
         if (temp_a0 != 0) {
             player->posY.i.hi++;
-            entity->posY.val += 0x4000;
+            entity->posY.val += FIX(0.25);
             if ((g_Camera.posY.i.hi + entity->posY.i.hi) > 193) {
                 entity->posY.i.hi = 193 - g_Camera.posY.i.hi;
                 D_8003BDEC[0x32] = 1;
@@ -942,7 +1620,7 @@ void EntitySwitch(Entity* entity) {
 
 // door preventing access to warp room / heart
 void EntityHeartRoomGoldDoor(Entity* self) {
-    s16 firstPolygonIndex;
+    s16 primIndex;
     Entity* newEntity;
     POLY_GT4* poly;
     s32 tilePos;
@@ -957,24 +1635,24 @@ void EntityHeartRoomGoldDoor(Entity* self) {
         self->zPriority = 0x5E;
 
         if (D_8003BDEC[50] != 0) {
-            for (tilePos = 0x48, i = 7, self->step = 128,
-                self->animCurFrame = 0;
-                 i >= 0; tilePos += 0x10, i--) {
+            for (
+                tilePos = 0x48, i = 7, self->step = 128, self->animCurFrame = 0;
+                i >= 0; tilePos += 0x10, i--) {
                 g_CurrentRoomTileLayout.fg[tilePos] = 0;
             }
             break;
         }
 
-        firstPolygonIndex = g_api.AllocPrimitives(1, 64);
-        if (firstPolygonIndex == -1) {
+        primIndex = g_api.AllocPrimitives(PRIM_TILE, 64);
+        if (primIndex == -1) {
             DestroyEntity(self);
             return;
         }
 
-        poly = &g_PrimBuf[firstPolygonIndex];
-        self->firstPolygonIndex = firstPolygonIndex;
+        poly = &g_PrimBuf[primIndex];
+        self->primIndex = primIndex;
         *(s32*)&self->ext.generic.unk7C = poly;
-        self->flags |= FLAG_FREE_POLYGONS;
+        self->flags |= FLAG_HAS_PRIMS;
         while (poly != NULL) {
             poly->v0 = 1;
             poly->u0 = 1;
@@ -987,8 +1665,8 @@ void EntityHeartRoomGoldDoor(Entity* self) {
             poly = (POLY_GT4*)poly->tag;
         }
 
-        for (tilePos = 0x48, temp = 0x4FA, i = 7; i >= 0;
-             tilePos += 0x10, i--) {
+        for (tilePos = 0x48, temp = 0x4FA, i = 7; i >= 0; tilePos += 0x10,
+            i--) {
             g_CurrentRoomTileLayout.fg[tilePos] = temp;
         }
         break;
@@ -1001,7 +1679,7 @@ void EntityHeartRoomGoldDoor(Entity* self) {
         break;
 
     case 2:
-        self->posY.val += 0x6000;
+        self->posY.val += FIX(0.375);
         if (++self->ext.generic.unk80.modeS32 & 1) {
             self->posX.i.hi++;
         } else {
@@ -1035,7 +1713,7 @@ void EntityHeartRoomGoldDoor(Entity* self) {
                     CreateEntityFromEntity(6, self, newEntity);
                     newEntity->posY.i.hi = 188;
                     newEntity->posX.i.hi += -8 + (Random() & 0xF);
-                    newEntity->subId = 0x10;
+                    newEntity->params = 0x10;
                     newEntity->unk1A = newEntity->unk1C = 192;
                     newEntity->unk19 |= 3;
                 }
@@ -1044,7 +1722,7 @@ void EntityHeartRoomGoldDoor(Entity* self) {
         break;
     }
 
-    if (self->flags & FLAG_FREE_POLYGONS) {
+    if (self->flags & FLAG_HAS_PRIMS) {
         for (poly = *(s32*)&self->ext.generic.unk7C; poly != NULL;
              poly = (POLY_GT4*)poly->tag) {
             if (poly->p3 != 0) {

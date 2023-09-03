@@ -1,6 +1,12 @@
 # Castlevania: Symphony of the Night Decompilation
 
-A work-in-progress decompilation of Castlevania Symphony of the Night for PlayStation 1. It aims to recreate the source code from the existing binaries using static and/or dynamic analysis. The code compiles byte-for-byte to the same binaries of the game, effectively being a matching decompilation. Currently it only supports the US version of the game `SLUS-00067`.
+A work-in-progress decompilation of Castlevania Symphony of the Night for Sony PlayStation 1 and Sega Saturn. It aims to recreate the source code from the existing binaries using static and/or dynamic analysis. The code compiles byte-for-byte to the same binaries of the game, effectively being a matching decompilation.
+
+It currently supports the following versions of the game:
+
+* `us` the reference build with the serial number SLUS-00067
+* `hd` an unreleased PS1 Japanese build found in Castlevania: Dracula X Chronicles game data
+* `saturn` the port created by an external development team
 
 This repo does not include any assets or assembly code necessary for compiling the binaries. A prior copy of the game is required to extract the required assets.
 
@@ -11,6 +17,7 @@ This repo does not include any assets or assembly code necessary for compiling t
 | SLUS_000.67 | N/A | N/A | Shared libraries
 | DRA.BIN    | ![code coverage DRA.BIN](https://img.shields.io/endpoint?label=DRA%20code&url=https%3A%2F%2Fprogress.deco.mp%2Fdata%2Fsotn%2Fus%2Fcode%2F%3Fmode%3Dshield%26measure%3Ddra) | ![decompiled functions](https://img.shields.io/endpoint?label=DRA%20funcs&url=https%3A%2F%2Fprogress.deco.mp%2Fdata%2Fsotn%2Fus%2Ffunctions%2F%3Fmode%3Dshield%26measure%3Ddra) | Game engine
 | BIN/RIC.BIN    | ![code coverage RIC.BIN](https://img.shields.io/endpoint?label=RIC%20code&url=https%3A%2F%2Fprogress.deco.mp%2Fdata%2Fsotn%2Fus%2Fcode%2F%3Fmode%3Dshield%26measure%3Dric) | ![decompiled functions](https://img.shields.io/endpoint?label=RIC%20funcs&url=https%3A%2F%2Fprogress.deco.mp%2Fdata%2Fsotn%2Fus%2Ffunctions%2F%3Fmode%3Dshield%26measure%3Dric) | Playable Richter
+| BIN/WEAPON0.BIN    | ![code coverage WEAPON0.BIN](https://img.shields.io/endpoint?label=WEAPON0%20code&url=https%3A%2F%2Fprogress.deco.mp%2Fdata%2Fsotn%2Fus%2Fcode%2F%3Fmode%3Dshield%26measure%3Dweapon) | ![decompiled functions](https://img.shields.io/endpoint?label=WEAPON0%20funcs&url=https%3A%2F%2Fprogress.deco.mp%2Fdata%2Fsotn%2Fus%2Ffunctions%2F%3Fmode%3Dshield%26measure%3Dweapon) | Equippables
 | ST/CEN/CEN.BIN | ![code coverage CEN.BIN](https://img.shields.io/endpoint?label=CEN%20code&url=https%3A%2F%2Fprogress.deco.mp%2Fdata%2Fsotn%2Fus%2Fcode%2F%3Fmode%3Dshield%26measure%3Dstcen) | ![decompiled functions](https://img.shields.io/endpoint?label=CEN%20funcs&url=https%3A%2F%2Fprogress.deco.mp%2Fdata%2Fsotn%2Fus%2Ffunctions%2F%3Fmode%3Dshield%26measure%3Dstcen) | Center
 | ST/DRE/DRE.BIN | ![code coverage DRE.BIN](https://img.shields.io/endpoint?label=DRE%20code&url=https%3A%2F%2Fprogress.deco.mp%2Fdata%2Fsotn%2Fus%2Fcode%2F%3Fmode%3Dshield%26measure%3Dstdre) | ![decompiled functions](https://img.shields.io/endpoint?label=DRE%20funcs&url=https%3A%2F%2Fprogress.deco.mp%2Fdata%2Fsotn%2Fus%2Ffunctions%2F%3Fmode%3Dshield%26measure%3Dstdre) | Nightmare
 | ST/MAD/MAD.BIN | ![code coverage MAD.BIN](https://img.shields.io/endpoint?label=MAD%20code&url=https%3A%2F%2Fprogress.deco.mp%2Fdata%2Fsotn%2Fus%2Fcode%2F%3Fmode%3Dshield%26measure%3Dstmad) | ![decompiled functions](https://img.shields.io/endpoint?label=MAD%20funcs&url=https%3A%2F%2Fprogress.deco.mp%2Fdata%2Fsotn%2Fus%2Ffunctions%2F%3Fmode%3Dshield%26measure%3Dstmad) | Debug Room
@@ -42,6 +49,7 @@ This project is possible thanks to the hard work of tools provided by the Decomp
 * [splat](https://github.com/ethteck/splat) from @ethteck to disassemble code and extract data with a symbol map. This tool provides the fundamental of the SOTN decomp.
 * [asm-differ](https://github.com/simonlindholm/asm-differ) from @simonlindholm to know how the decompiled code compares to the original binary.
 * [decomp-permuter](https://github.com/simonlindholm/decomp-permuter) from @simonlindholm to pick different versions of the same code that better matches the original binary.
+* [maspsx](https://github.com/mkst/maspsx) by @mkst to replicate the customized assembler used in the official PSX SDK.
 * [decomp.me](https://github.com/decompme/decomp.me/) by @ethteck, @nanaian and @mkst to provide a collaborative decompilation site to share and contribute to work-in-progress decompiled functions.
 * [frogress](https://github.com/decompals/frogress) by @ethteck to store and retrieve progression data.
 * [esa-new](https://github.com/mkst/esa-new) by @mkst as an inspiration on how to set-up a PS1 decompilation project.

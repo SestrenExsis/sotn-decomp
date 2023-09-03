@@ -1,10 +1,10 @@
 #include "np3.h"
 
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CB018);
+INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", EntityOwl);
 
 INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CBF18);
 
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CC2E0);
+INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", EntityOwlKnight);
 
 void func_801CD540(Entity* self) {
     s8* hitbox;
@@ -26,11 +26,11 @@ void func_801CD540(Entity* self) {
     }
 
     hitbox += diff * 4;
-    self->unk10 = *hitbox++;
-    self->unk12 = *hitbox++;
+    self->hitboxOffX = *hitbox++;
+    self->hitboxOffY = *hitbox++;
     self->hitboxWidth = hitbox[0];
     self->hitboxHeight = hitbox[1];
-    if (self[-1].objectId != 0x44) {
+    if (self[-1].entityId != 0x44) {
         DestroyEntity(self);
     }
 }
@@ -41,7 +41,19 @@ void func_801CD620(Entity* self) {
     }
 }
 
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CD658);
+void func_801CD658(void) {
+    g_CurrentBuffer = g_CurrentBuffer->next;
+    FntPrint("a:%x\n", D_801D3378);
+    FntPrint("b:%x\n", D_801D337C);
+    FntPrint("c:%x\n", D_801D3380);
+    FntPrint("d:%x\n", D_801D3384);
+    FntPrint("e:%x\n", D_801D3388);
+    DrawSync(0);
+    VSync(0);
+    PutDrawEnv(&g_CurrentBuffer->draw);
+    PutDispEnv(&g_CurrentBuffer->disp);
+    FntFlush(-1);
+}
 
 void func_801CD734() {
     while (PadRead(0))
@@ -50,208 +62,346 @@ void func_801CD734() {
         func_801CD658();
 }
 
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CD78C);
+void func_801CD78C(Entity* src, s32 speed, s16 angle, Entity* dst) {
+    if (g_CurrentEntity->facing != 0) {
+        angle = -angle;
+    }
 
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CD83C);
+    //! FAKE:
+    (*(Point32*)dst) = (*(Point32*)src);
 
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CD91C);
+    (*(Point32*)dst).x -= speed * rsin(angle) * 16;
+    (*(Point32*)dst).y += speed * rcos(angle) * 16;
+}
 
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CDA14);
+void func_801CD83C(Entity* self) {
+    s16 angle = self->ext.GH_Props.unk9C;
+    Entity* src;
 
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CDA6C);
+    if (g_CurrentEntity->facing != 0) {
+        angle = -angle;
+    }
+
+    src = self->ext.GH_Props.unkA0;
+    self->posX.val = src->posX.val;
+    self->posY.val = src->posY.val;
+    self->posX.val -= self->ext.GH_Props.unk9E * rsin(angle) * 16;
+    self->posY.val += self->ext.GH_Props.unk9E * rcos(angle) * 16;
+    if (self->ext.GH_Props.unkA8 != 0) {
+        FntPrint("CAUTION!! WARNING_A AT %x\n", self->animCurFrame);
+    }
+    self->ext.GH_Props.unkA8 |= 1;
+}
+
+void func_801CD91C(Entity* self) {
+    s16 angle = self->ext.GH_Props.unk9C;
+    Entity* src;
+
+    if (g_CurrentEntity->facing != 0) {
+        angle = -angle;
+    }
+    src = self->ext.GH_Props.unkA0;
+    src->posX.val = self->posX.val;
+    src->posY.val = self->posY.val;
+    src->posX.val -= -self->ext.GH_Props.unk9E * rsin(angle) * 16;
+    src->posY.val =
+        -self->ext.GH_Props.unk9E * rcos(angle) * 16 + src->posY.val;
+    if (self->ext.GH_Props.unkA8 != 0) {
+        FntPrint("CAUTION!! WARNING_B AT %x\n", self->animCurFrame);
+    }
+    self->ext.GH_Props.unkA8 |= 1;
+}
+
+void func_801CDA14(Entity* ent1, Entity* ent2) {
+    Entity* temp_a0;
+
+    temp_a0 = ent1->ext.GH_Props.unkA0;
+    func_801CD78C(temp_a0, temp_a0->ext.GH_Props.unk9E,
+                  temp_a0->ext.GH_Props.unk9C, ent1);
+    func_801CD78C(
+        ent1, ent2->ext.GH_Props.unk9E, ent2->ext.GH_Props.unk9C, ent2);
+}
+
+void func_801CDA6C(Entity* self, s32 arg1) {
+    Entity* temp_s0;
+
+    temp_s0 = self->ext.GH_Props.unkA0;
+    func_801CD78C(
+        self, -self->ext.GH_Props.unk9E, self->ext.GH_Props.unk9C, temp_s0);
+    func_801CD78C(temp_s0, -temp_s0->ext.GH_Props.unk9E,
+                  temp_s0->ext.GH_Props.unk9C, arg1);
+}
 
 INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CDAC8);
 
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CDC80);
+bool func_801CDC80(s16* arg0, s16 arg1, s16 arg2) {
+    s32 var_v1 = *arg0 - arg1;
+    s32 ret;
 
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CDD00);
+    if (ABS(var_v1) < arg2) {
+        *arg0 = arg1;
+        return true;
+    }
 
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CDD80);
+    if (arg1 < *arg0) {
+        *arg0 = *arg0 - arg2;
+    }
 
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CDE10);
+    if (*arg0 < arg1) {
+        *arg0 = arg2 + *arg0;
+    }
 
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CDE88);
+    return false;
+}
+
+void func_801CDD00(Entity* entity, s16 arg1, s16 arg2) {
+    s16 temp_t0 = arg1 - entity->ext.GH_Props.unk9C;
+
+    if (temp_t0 > 0x800) {
+        temp_t0 -= 0x1000;
+    }
+
+    if (temp_t0 < -0x800) {
+        temp_t0 += 0x1000;
+    }
+
+    do {
+        entity->ext.GH_Props.unkA4 = arg1;
+        entity->ext.GH_Props.unkA6 = temp_t0 / arg2;
+    } while (0);
+}
+
+void func_801CDD80(s16* arg0, Entity* arg1) {
+    s16* posY = arg1->posY.val;
+
+    while (*arg0 != 0) {
+        if (*arg0 != 0xFF) {
+            func_801CDD00(&g_CurrentEntity[*arg0], *posY, arg1->posX.val);
+        }
+        arg0++;
+        posY++;
+    }
+}
+
+void func_801CDE10(s16* arg0) {
+    Entity* temp_a0;
+
+    while (*arg0 != 0) {
+        if (*arg0 != 0xFF) {
+            temp_a0 = &g_CurrentEntity[*arg0];
+            temp_a0->ext.GH_Props.unk9C =
+                temp_a0->ext.GH_Props.unk9C + temp_a0->ext.generic.unkA6;
+        }
+        arg0++;
+    }
+}
+
+void func_801CDE88(s16* arg0) {
+    Entity* temp_a0;
+
+    while (*arg0 != 0) {
+        if (*arg0 != 0xFF) {
+            temp_a0 = &g_CurrentEntity[*arg0];
+            temp_a0->ext.GH_Props.unk9C =
+                temp_a0->ext.GH_Props.unk9C + temp_a0->ext.generic.unkA6;
+            func_801CD83C(temp_a0);
+        }
+        arg0++;
+    }
+}
 
 INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CDF1C);
 
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CDFD8);
-
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CE04C);
-
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CE120);
-
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CE1E8);
-
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CE228);
-
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CE258);
-
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CE2CC);
-
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CE3FC);
-
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CE4CC);
-
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CE69C);
-
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CF254);
-
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CF5B8);
-
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CF778);
-
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CF7A0);
-
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801CF94C);
-
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801D0730);
-
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801D0A00);
-
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801D0B40);
-
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801D0B78);
-
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801D0D40);
-
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801D1BB8);
-
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801D1F38);
-
-INCLUDE_ASM("asm/us/st/np3/nonmatchings/4B018", func_801D2320);
-
-Primitive* func_801D2470(Primitive* poly) {
-    while (poly != NULL) {
-        if (poly->p3 != 0) {
-            poly = poly->next;
-        } else {
-            return poly;
-        }
+void func_801CDFD8(Entity* self, s32 arg1) {
+    if (self->ext.et_801CDFD8.unkB4 == 0) {
+        func_801CDD00(self, self->ext.et_801CDFD8.unkA4, arg1);
+        self->ext.et_801CDFD8.unkB4 = arg1;
     }
-    return NULL;
+    self->ext.et_801CDFD8.unkB4--;
+    self->ext.et_801CDFD8.unk9C += self->ext.et_801CDFD8.unkA6;
+    func_801CD83C(self);
 }
 
-Primitive* func_801D24A0(Primitive* prim, u8 index) {
-    if (prim) {
-        s32 index_ = index;
-    loop_2:
-        if (prim->p3 == 0) {
-            Primitive* var_v0 = NULL;
-            Primitive* firstPrim = prim;
-            s32 i = 1;
-            if (i < index_) {
-                do {
-                    prim = prim->next;
-                    if (!prim)
-                        return NULL;
-                } while (prim->p3 == 0 && ++i < index);
-            }
-            var_v0 = firstPrim;
-            if (i == index_)
-                return var_v0;
-        }
-        prim = prim->next;
-        if (prim) {
-            goto loop_2;
-        }
-    }
-    return NULL;
-}
+void func_801CE04C(Entity* entity, Collider* collider) {
+    s16 var_s0 = 0;
 
-POLY_GT4* func_801D251C(POLY_GT4* startPoly, s32 count) {
-    POLY_GT4* poly;
-    s8 unk;
-    s32 i;
-
-    if (startPoly->p3) {
-        startPoly->p3 = 0;
-    } else {
-        startPoly->p3 = 1;
-    }
-
-    poly = startPoly;
-    for (i = 0; i < count; i++) {
-        if (poly->p3) {
-            poly->pad3 &= ~8;
-            unk = 0;
-        } else {
-            poly->pad3 |= 8;
-            unk = 1;
-        }
-
-        poly = (POLY_GT4*)poly->tag;
-        if (poly == 0)
-            return 0;
-        poly->p3 = unk;
-    }
-
-    return poly;
-}
-
-void func_801D25A4(POLY_GT4* arg0) {
-    arg0->p1 = 0;
-    arg0->p2 = 0;
-    arg0->p3 = 0;
-    ((POLY_GT4*)arg0->tag)->x1 = 0;
-    ((POLY_GT4*)arg0->tag)->y1 = 0;
-    ((POLY_GT4*)arg0->tag)->y0 = 0;
-    ((POLY_GT4*)arg0->tag)->x0 = 0;
-    ((POLY_GT4*)arg0->tag)->clut = 0;
-    *(u16*)&((POLY_GT4*)arg0->tag)->u0 = 0;
-    *(u16*)&((POLY_GT4*)arg0->tag)->b1 = 0;
-    *(u16*)&((POLY_GT4*)arg0->tag)->r1 = 0;
-    *(u16*)&((POLY_GT4*)arg0->tag)->u1 = 0;
-    ((POLY_GT4*)arg0->tag)->tpage = 0;
-    *(u16*)&((POLY_GT4*)arg0->tag)->r2 = 0;
-    *(u16*)&((POLY_GT4*)arg0->tag)->b2 = 0;
-    ((POLY_GT4*)arg0->tag)->u2 = 0;
-    ((POLY_GT4*)arg0->tag)->v2 = 0;
-    ((POLY_GT4*)arg0->tag)->r3 = 0;
-    ((POLY_GT4*)arg0->tag)->b3 = 0;
-    ((POLY_GT4*)arg0->tag)->x2 = 0;
-    ((POLY_GT4*)arg0->tag)->y2 = 0;
-}
-
-void func_801D2684(POLY_GT4* arg0) {
-    func_801D25A4(arg0);
-    arg0->p3 = 8;
-    ((POLY_GT4*)arg0->tag)->p3 = 1;
-    ((POLY_GT4*)arg0->tag)->code = 2;
-    ((POLY_GT4*)arg0->tag)->pad3 = 0xA;
-}
-
-void func_801D26D8(POLY_GT4* arg0) {
-    arg0->p3 = 0;
-    arg0->pad3 = 8;
-    ((POLY_GT4*)arg0->tag)->p3 = 0;
-    ((POLY_GT4*)arg0->tag)->code = 4;
-    ((POLY_GT4*)arg0->tag)->pad3 = 8;
-}
-
-s32 func_801D2704(s32 arg0, u8 arg1) {
-    s32 var_v0;
-    s32 ret = 0;
-    u8* var_a0 = arg0 + 4;
-    u8* var_v1;
-    s32 i;
-
-    for (i = 0; i < 4; i++) {
-        var_v1 = var_a0;
-        do {
-            var_v0 = *var_v1 - arg1;
-
-            if (var_v0 < 0) {
-                var_v0 = 0;
+    g_api.CheckCollision(
+        entity->posX.i.hi, (s16)(entity->posY.i.hi + collider->unk18), collider,
+        0);
+    if (collider->effects & 1) {
+        var_s0 = 1;
+        if (collider->effects & 0x8000) {
+            if (collider->effects & 0x4000) {
+                if (g_CurrentEntity->facing != 0) {
+                    var_s0 = 4;
+                } else {
+                    var_s0 = 2;
+                }
             } else {
-                ret |= 1;
+                if (g_CurrentEntity->facing != 0) {
+                    var_s0 = 2;
+                } else {
+                    var_s0 = 4;
+                }
             }
+        }
+    }
+    entity->ext.generic.unk88.S16.unk0 = var_s0;
+}
 
-            *var_v1 = var_v0;
-            var_v1++;
-        } while (((s32)var_v1 < ((s32)var_a0 + 3)));
+s32 func_801CE120(Entity* self, s32 facing) {
+    Collider collider;
+    s32 x = self->posX.i.hi;
+    s32 y = self->posY.i.hi + 9;
+    s32 ret = 0;
 
-        var_a0 += 0xC;
+    if (facing != 0) {
+        x += 64;
+    } else {
+        x -= 64;
+    }
+
+    g_api.CheckCollision(x, y - 6, &collider, 0);
+    if (collider.effects & 1) {
+        ret |= 2;
+    }
+
+    g_api.CheckCollision(x, y + 6, &collider, 0);
+    if (!(collider.effects & 1)) {
+        ret |= 4;
     }
 
     return ret;
+}
+
+void func_801CE1E8(s16 step) {
+    s32 i;
+
+    g_CurrentEntity->step = step;
+    g_CurrentEntity->step_s = 0;
+    g_CurrentEntity->animFrameIdx = 0;
+    g_CurrentEntity->animFrameDuration = 0;
+
+    for (i = 0; i < 4; i++) {
+        g_CurrentEntity->ext.GH_Props.unkB0[i] = 0;
+        g_CurrentEntity->ext.GH_Props.unkB0[i + 2] = 0;
+    }
+}
+
+void func_801CE228(s16 step) {
+    s32 i;
+
+    for (i = 0; i < 4; i++) {
+        g_CurrentEntity->ext.GH_Props.unkB0[i] = 0;
+        g_CurrentEntity->ext.GH_Props.unkB0[i + 2] = 0;
+    }
+}
+
+void func_801CE258(s16* arg0) {
+    Entity* entity;
+
+    while (*arg0 != 0) {
+        entity = &g_CurrentEntity[*arg0];
+        if (entity->ext.GH_Props.unkA8 == 0) {
+            func_801CD83C(entity);
+        }
+        arg0++;
+    }
+}
+
+void func_801CE2CC(s16* arg0) {
+    s16* var_s0;
+
+    func_801CD91C(&g_CurrentEntity[arg0[1]]);
+    func_801CD91C(&g_CurrentEntity[arg0[0]]);
+    func_801CD83C(&g_CurrentEntity[arg0[2]]);
+    func_801CD83C(&g_CurrentEntity[arg0[3]]);
+
+    for (arg0 += 4; *arg0 != 0; arg0++) {
+        if (*arg0 != 0xFF) {
+            func_801CD83C(&g_CurrentEntity[*arg0]);
+        }
+    }
+}
+
+void func_801CE3FC(s16* arg0) {
+    s16* var_s0;
+    s16 var_v0;
+    s32 i;
+
+    for (i = 0, var_s0 = arg0; i < 4; i++) {
+        func_801CD83C(&g_CurrentEntity[*var_s0]);
+        var_s0++;
+    }
+
+    for (arg0 += 4; *arg0 != 0; arg0++) {
+        if (*arg0 != 0xFF) {
+            func_801CD83C(&g_CurrentEntity[*arg0]);
+        }
+    }
+}
+
+s32 func_801CE4CC(Entity* self) {
+    Entity* entity;
+    s32 step;
+    s32 x;
+
+    if (g_CurrentEntity->ext.et_801CE4CC.unk8E != 0) {
+        g_CurrentEntity->ext.et_801CE4CC.unk8E--;
+    }
+
+    x = self->posX.i.hi - PLAYER.posX.i.hi;
+    if (g_CurrentEntity->facing != 0) {
+        x = -x;
+    }
+
+    if (x < -16) {
+        func_801CE1E8(10);
+        return;
+    }
+
+    if (g_CurrentEntity->ext.et_801CE4CC.unk84 == 1) {
+        entity = g_CurrentEntity + 10;
+    } else {
+        entity = g_CurrentEntity + 13;
+    }
+
+    if (func_801CE120(entity, g_CurrentEntity->facing) != 0) {
+        func_801CE1E8(7);
+        return;
+    }
+    if (func_801CE120(entity, g_CurrentEntity->facing ^ 1) != 0) {
+        func_801CE1E8(5);
+        return;
+    }
+
+    if (g_CurrentEntity->step == 8) {
+        if (x < 80) {
+            step = 5;
+        } else {
+            step = 8;
+        }
+    } else {
+        if (x < 80) {
+            step = 7;
+        } else {
+            step = 5;
+        }
+        if (x > 160) {
+            step = 8;
+        }
+    }
+
+    if ((g_CurrentEntity->ext.et_801CE4CC.unk8E == 0) && (x < 96)) {
+        g_CurrentEntity->ext.et_801CE4CC.unk8E = 3;
+        step = 6;
+    }
+    if (step != g_CurrentEntity->step) {
+        func_801CE1E8(step);
+    }
+    if (g_CurrentEntity->step == 7) {
+        if (step == 5) {
+            g_CurrentEntity->ext.et_801CE4CC.unkB0 = 1;
+        }
+    }
 }

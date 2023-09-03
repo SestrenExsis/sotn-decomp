@@ -5,14 +5,15 @@
  */
 
 #include "ric.h"
+#include "player.h"
 
 void func_80156C60(Entity* entity) {
     s32 i;
     s32 length;
     u32* ptr;
 
-    if (entity->flags & FLAG_FREE_POLYGONS) {
-        g_api.FreePrimitives(entity->firstPolygonIndex);
+    if (entity->flags & FLAG_HAS_PRIMS) {
+        g_api.FreePrimitives(entity->primIndex);
     }
 
     ptr = (u32*)entity;
@@ -21,7 +22,41 @@ void func_80156C60(Entity* entity) {
         *ptr++ = 0;
 }
 
-INCLUDE_ASM("asm/us/ric/nonmatchings/1AC60", func_80156CCC);
+TeleportCheck GetTeleportToOtherCastle(void) {
+    s32 xCheckTop;
+    s32 yCheckTop;
+    s32 xCheckRTop;
+    s32 yCheckRTop;
+
+    // Is player in the pose when pressing UP?
+    if (PLAYER.step != 0 || PLAYER.step_s != 1) {
+        return TELEPORT_CHECK_NONE;
+    }
+
+    // Check for X/Y boundaries in TOP
+    if (g_StageId == STAGE_TOP) {
+        xCheckTop = (g_CurrentRoom.left << 8) + playerX - 8000;
+        if (ABS(xCheckTop) < 4) {
+            yCheckTop = (g_CurrentRoom.top << 8) + playerY - 2127;
+            if (ABS(yCheckTop) < 4) {
+                return TELEPORT_CHECK_TO_RTOP;
+            }
+        }
+    }
+
+    // Check for X/Y boundaries in RTOP
+    if (g_StageId == STAGE_RTOP) {
+        xCheckRTop = (g_CurrentRoom.left << 8) + playerX - 8384;
+        if (ABS(xCheckRTop) < 4) {
+            yCheckRTop = (g_CurrentRoom.top << 8) + playerY;
+            if (ABS(yCheckRTop) - 14407 < 4) {
+                return TELEPORT_CHECK_TO_TOP;
+            }
+        }
+    }
+
+    return TELEPORT_CHECK_NONE;
+}
 
 INCLUDE_ASM("asm/us/ric/nonmatchings/1AC60", func_80156DE4);
 
@@ -54,7 +89,67 @@ void func_80158814(void) {
     PLAYER.palette = D_80175954;
 }
 
-INCLUDE_ASM("asm/us/ric/nonmatchings/1AC60", func_8015885C);
+bool func_8015885C(void) {
+    if (D_80175956 == 0) {
+        if (g_Player.padTapped & PAD_L2) {
+            if (g_Player.D_80072EFC == 0) {
+                func_801587D0();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    if ((g_Player.D_80072EFC != 0) || (g_Player.padTapped & PAD_L2)) {
+        func_80158814();
+        return false;
+    }
+
+    if (g_Player.padPressed & PAD_CROSS) {
+        if (g_Player.padPressed & PAD_RIGHT) {
+            g_Entities->posX.val += FIX(16.0);
+        }
+        if (g_Player.padPressed & PAD_LEFT) {
+            g_Entities->posX.val -= FIX(16.0);
+        }
+        if (g_Player.padPressed & PAD_UP) {
+            PLAYER.posY.val -= FIX(16.0);
+        }
+        if (g_Player.padPressed & PAD_DOWN) {
+            PLAYER.posY.val += FIX(16.0);
+        }
+
+    } else {
+        if (g_Player.padTapped & PAD_RIGHT) {
+            g_Entities->posX.val += FIX(16.0);
+        }
+        if (g_Player.padTapped & PAD_LEFT) {
+            g_Entities->posX.val -= FIX(16.0);
+        }
+        if (g_Player.padTapped & PAD_UP) {
+            PLAYER.posY.val -= FIX(16.0);
+        }
+        if (g_Player.padTapped & PAD_DOWN) {
+            PLAYER.posY.val += FIX(16.0);
+        }
+    }
+
+    if (g_Player.padTapped & PAD_CIRCLE) {
+        PLAYER.animCurFrame--;
+    }
+    if (g_Player.padTapped & PAD_SQUARE) {
+        PLAYER.animCurFrame++;
+    }
+
+    if (PLAYER.animCurFrame <= 0) {
+        PLAYER.animCurFrame = 1;
+    }
+    if (PLAYER.animCurFrame < 212 == 0) {
+        PLAYER.animCurFrame = 211;
+    }
+    FntPrint("charal:%02x\n", PLAYER.animCurFrame);
+    return true;
+}
 
 void func_80158B04(s32 arg0) {
     s32 var_s0;
@@ -77,8 +172,8 @@ void func_80158B04(s32 arg0) {
     }
 
     if (arg0 & 2) {
-        PLAYER.accelerationX = 0;
-        PLAYER.accelerationY = 0;
+        PLAYER.velocityX = 0;
+        PLAYER.velocityY = 0;
     }
 }
 
@@ -207,7 +302,7 @@ void func_80158FA4(void) {
                     func_801606BC(g_CurrentEntity, 0, 0);
                 }
             } else {
-                PLAYER.accelerationX = 0;
+                PLAYER.velocityX = 0;
             }
         } else if (PLAYER.step_s == 0) {
             func_8015CA84(0x24000);
@@ -249,35 +344,35 @@ void func_80159C04(void) {
     s32 var_a2;
 
     if (entity->facing != 0) {
-        var_a2 = -entity->unk10;
+        var_a2 = -entity->hitboxOffX;
     } else {
-        var_a2 = entity->unk10;
+        var_a2 = entity->hitboxOffX;
     }
 
     if (PLAYER.facing != 0) {
-        var_a0 = -PLAYER.unk10;
+        var_a0 = -PLAYER.hitboxOffX;
     } else {
-        var_a0 = PLAYER.unk10;
+        var_a0 = PLAYER.hitboxOffX;
     }
 
     temp_v0 = var_a0 + PLAYER.posX.i.hi - entity->posX.i.hi - var_a2;
 
     if (ABS(temp_v0) < 16) {
-        if (entity->accelerationX != 0) {
-            if (entity->accelerationX < 0) {
-                PLAYER.objectRoomIndex = 0;
+        if (entity->velocityX != 0) {
+            if (entity->velocityX < 0) {
+                PLAYER.entityRoomIndex = 0;
                 return;
             } else {
-                PLAYER.objectRoomIndex = 1;
+                PLAYER.entityRoomIndex = 1;
                 return;
             }
         }
     }
 
     if (temp_v0 < 0) {
-        PLAYER.objectRoomIndex = 0;
+        PLAYER.entityRoomIndex = 0;
     } else {
-        PLAYER.objectRoomIndex = 1;
+        PLAYER.entityRoomIndex = 1;
     }
 }
 
@@ -290,9 +385,9 @@ INCLUDE_ASM("asm/us/ric/nonmatchings/1AC60", func_8015A9B0);
 
 void func_8015AFE0(void) {
     if (PLAYER.step_s == 0) {
-        PLAYER.accelerationY += 0x3800;
-        if (PLAYER.accelerationY > 0) {
-            PLAYER.accelerationY = 0;
+        PLAYER.velocityY += 0x3800;
+        if (PLAYER.velocityY > 0) {
+            PLAYER.velocityY = 0;
             PLAYER.step_s = 1;
         }
     } else if (g_Player.unk4E != 0) {
@@ -302,7 +397,7 @@ void func_8015AFE0(void) {
         g_Player.unk44 = 0;
     }
     if (g_Player.unk72 != 0) {
-        PLAYER.accelerationY = 0;
+        PLAYER.velocityY = 0;
     }
 }
 

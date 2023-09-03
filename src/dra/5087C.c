@@ -1,3 +1,4 @@
+#define INCLUDE_ASM_NEW
 #include "dra.h"
 
 s32 func_800F087C(u32 chunkX, u32 chunkY) {
@@ -11,16 +12,18 @@ s32 func_800F087C(u32 chunkX, u32 chunkY) {
 
         res = phi_s1->x == chunkX;
         if (res && phi_s1->y == chunkY && phi_s1->stageId == g_StageId &&
-            (phi_s1->bossId == 0xFF || func_800FD4C0(phi_s1->bossId, 0) == 0)) {
+            (phi_s1->eventId == TIMEATTACK_EVENT_INVALID ||
+             TimeAttackController(phi_s1->eventId, TIMEATTACK_GET_RECORD) ==
+                 0)) {
             return phi_s1->unk10 + 2;
         }
     }
 }
 
-INCLUDE_ASM("asm/us/dra/nonmatchings/5087C", func_800F0940);
+INCLUDE_ASM("dra/nonmatchings/5087C", func_800F0940);
 
 #ifndef NON_EQUIVALENT
-INCLUDE_ASM("asm/us/dra/nonmatchings/5087C", SetNextRoomToLoad);
+INCLUDE_ASM("dra/nonmatchings/5087C", SetNextRoomToLoad);
 #else
 bool SetNextRoomToLoad(u32 chunkX, u32 chunkY) {
     s32 res;
@@ -55,7 +58,7 @@ loop_3:
 #endif
 
 #ifndef NON_EQUIVALENT
-INCLUDE_ASM("asm/us/dra/nonmatchings/5087C", func_800F0CD8);
+INCLUDE_ASM("dra/nonmatchings/5087C", func_800F0CD8);
 #else
 extern s16 D_80072F98;
 extern s32 D_801375A4;
@@ -83,8 +86,8 @@ s32 func_800F0CD8(s32 arg0) {
             goto block_25;
         }
         if (playerX < g_CurrentRoom.x) {
-            var_v0 = SetNextRoomToLoad(g_CurrentRoom.left - 1,
-                                       (playerY >> 8) + g_CurrentRoom.top);
+            var_v0 = SetNextRoomToLoad(
+                g_CurrentRoom.left - 1, (playerY >> 8) + g_CurrentRoom.top);
             if (var_v0) {
                 D_80072F98 = 1;
                 D_801375C0 = g_Entities[0].posX.i.hi + 0x100;
@@ -95,8 +98,8 @@ s32 func_800F0CD8(s32 arg0) {
             playerX = g_CurrentRoom.x;
         }
         if (playerX >= g_CurrentRoom.width) {
-            var_v0 = SetNextRoomToLoad(g_CurrentRoom.right + 1,
-                                       (playerY >> 8) + g_CurrentRoom.top);
+            var_v0 = SetNextRoomToLoad(
+                g_CurrentRoom.right + 1, (playerY >> 8) + g_CurrentRoom.top);
             if (var_v0) {
                 D_80072F98 = 1;
                 D_801375C0 = g_Entities[0].posX.i.hi - 0x100;
@@ -109,8 +112,8 @@ s32 func_800F0CD8(s32 arg0) {
     }
     if (D_80097424 == 0) {
         if (playerY < g_CurrentRoom.y + 4) {
-            temp_v0 = SetNextRoomToLoad((playerX >> 8) + g_CurrentRoom.left,
-                                        g_CurrentRoom.top - 1);
+            temp_v0 = SetNextRoomToLoad(
+                (playerX >> 8) + g_CurrentRoom.left, g_CurrentRoom.top - 1);
             if (temp_v0 != false) {
                 D_80072F98 = 2;
                 D_801375C0 = g_Entities[0].posX.i.hi;
@@ -126,8 +129,8 @@ s32 func_800F0CD8(s32 arg0) {
             var_s0 = 0x18;
         }
         if (playerY >= ((g_CurrentRoom.height - var_s0) + 0x14)) {
-            temp_v0 = SetNextRoomToLoad((playerX >> 8) + g_CurrentRoom.left,
-                                        g_CurrentRoom.bottom + 1);
+            temp_v0 = SetNextRoomToLoad(
+                (playerX >> 8) + g_CurrentRoom.left, g_CurrentRoom.bottom + 1);
             if (temp_v0 != false) {
                 D_80072F98 = 2;
                 D_801375C0 = g_Entities[0].posX.i.hi;
@@ -185,8 +188,8 @@ block_25:
                 g_CurrentRoom.y + 8 < g_Camera.posY.i.hi) {
                 g_Camera.posY.i.hi -= 4;
                 g_Entities[0].posY.i.hi += 4;
-            } else if (g_Camera.posY.i.hi < g_CurrentRoom.y &&
-                       g_CurrentRoom.y != 0) {
+            } else if (
+                g_Camera.posY.i.hi < g_CurrentRoom.y && g_CurrentRoom.y != 0) {
                 g_Camera.posY.i.hi += 4;
                 g_Entities[0].posY.i.hi -= 4;
             } else {
@@ -223,7 +226,7 @@ void func_800F1424(void) {
     }
 }
 
-INCLUDE_ASM("asm/us/dra/nonmatchings/5087C", func_800F14CC);
+INCLUDE_ASM("dra/nonmatchings/5087C", func_800F14CC);
 
 s32 func_800F16D0(void) {
     if (D_8003C730 != 0)
@@ -315,7 +318,7 @@ void func_800F18C4(s32 arg0, s32 arg1) {
     func_800F1868(arg0, arg1, &sp10);
 }
 
-INCLUDE_ASM("asm/us/dra/nonmatchings/5087C", func_800F1954);
+INCLUDE_ASM("dra/nonmatchings/5087C", func_800F1954);
 
 void func_800F1A3C(s32 arg0) {
     if (arg0 == 0) {
@@ -335,28 +338,51 @@ void func_800F1A3C(s32 arg0) {
     }
 }
 
-INCLUDE_ASM("asm/us/dra/nonmatchings/5087C", func_800F1B08);
+INCLUDE_ASM("dra/nonmatchings/5087C", func_800F1B08);
 
-INCLUDE_ASM("asm/us/dra/nonmatchings/5087C", func_800F1D54);
+INCLUDE_ASM("dra/nonmatchings/5087C", func_800F1D54);
 
-INCLUDE_ASM("asm/us/dra/nonmatchings/5087C", func_800F1EB0);
+INCLUDE_ASM("dra/nonmatchings/5087C", func_800F1EB0);
 
 void func_800F1FC4(s32 arg0) {
     func_800F1EB0((playerX >> 8) + g_CurrentRoom.left,
                   (playerY >> 8) + g_CurrentRoom.top, arg0);
 }
 
-INCLUDE_ASM("asm/us/dra/nonmatchings/5087C", func_800F2014);
+void func_800F2014(void) {
+    s32 x;
+    s32 y;
+    s32 subMap;
+    s32 idx;
+    s32 currMapRect;
 
-INCLUDE_ASM("asm/us/dra/nonmatchings/5087C", func_800F2120);
-
-void func_800F223C(void) {
-    g_StageId ^= 0x20;
-    func_800F2120();
-    g_StageId ^= 0x20;
+    if ((D_8013AED0 != 0) && (g_StageId != STAGE_ST0)) {
+        x = (playerX >> 8) + g_CurrentRoom.left;
+        y = (playerY >> 8) + g_CurrentRoom.top;
+        idx = (x >> 2) + (y * 16);
+        subMap = 1 << ((3 - (x & 3)) * 2);
+        if (g_StageId & STAGE_INVERTEDCASTLE_FLAG) {
+            idx += 0x400;
+        }
+        currMapRect = D_8006BB74[idx];
+        if (!(currMapRect & subMap)) {
+            D_8006BB74[idx] = currMapRect | subMap;
+            g_roomCount++;
+            func_800F1B08(x, y, 0, currMapRect);
+            func_800F1EB0(x, y, 0xFFFF);
+        }
+    }
 }
 
-INCLUDE_ASM("asm/us/dra/nonmatchings/5087C", func_800F2288);
+INCLUDE_ASM("dra/nonmatchings/5087C", func_800F2120);
+
+void func_800F223C(void) {
+    g_StageId ^= STAGE_INVERTEDCASTLE_FLAG;
+    func_800F2120();
+    g_StageId ^= STAGE_INVERTEDCASTLE_FLAG;
+}
+
+INCLUDE_ASM("dra/nonmatchings/5087C", func_800F2288);
 
 void func_800F2404(s32 arg0) {
     s32* temp;
@@ -364,7 +390,7 @@ void func_800F2404(s32 arg0) {
     s32 count;
 
     if (arg0 == 0) {
-        D_80097410 = 0;
+        g_BottomCornerTextTimer = 0;
         D_800973F8 = 0;
         D_800973FC = 0;
     }
@@ -376,12 +402,12 @@ void func_800F2404(s32 arg0) {
     D_8009741C = 0;
     D_8009740C[0] = 0x80;
 
-    if (D_80097410 != 0) {
-        FreePrimitives(D_80097414);
+    if (g_BottomCornerTextTimer != 0) {
+        FreePrimitives(g_BottomCornerTextPrims);
     }
 
-    D_80097410 = 0;
-    D_80097414 = 0;
+    g_BottomCornerTextTimer = 0;
+    g_BottomCornerTextPrims = 0;
     g_zEntityCenter.unk = 148;
     count = 7;
 
@@ -402,7 +428,7 @@ void func_800F2404(s32 arg0) {
 }
 
 #ifndef NON_EQUIVALENT
-INCLUDE_ASM("asm/us/dra/nonmatchings/5087C", func_800F24F4);
+INCLUDE_ASM("dra/nonmatchings/5087C", func_800F24F4);
 #else
 void func_801042C4(s32);
 void func_80105428();
@@ -420,8 +446,10 @@ void func_800F24F4(void) {
         phi_v1 = g_StageId;
         if (phi_v1 == (STAGE_NO0 | STAGE_INVERTEDCASTLE_FLAG)) {
             if ((castleX == phi_v1) && (castleY == 0x24)) {
-                if (func_800FD4C0(22, 0) == 0) {
-                    func_800FD4C0(22, 1);
+                if (TimeAttackController(TIMEATTACK_EVENT_FINAL_SAVEPOINT,
+                                         TIMEATTACK_GET_RECORD) == 0) {
+                    TimeAttackController(TIMEATTACK_EVENT_FINAL_SAVEPOINT,
+                                         TIMEATTACK_SET_RECORD);
                 }
                 phi_v1 = g_StageId;
             }
@@ -437,7 +465,8 @@ void func_800F24F4(void) {
                     phi_a0 = 1;
                 } else {
                     phi_a0 = 1;
-                    if (func_800FD4C0(1, 0)) {
+                    if (TimeAttackController(TIMEATTACK_EVENT_ORLOX_DEFEAT,
+                                             TIMEATTACK_GET_RECORD)) {
                         goto block_18;
                     }
                 }
@@ -454,7 +483,7 @@ block_18:
 }
 #endif
 
-INCLUDE_ASM("asm/us/dra/nonmatchings/5087C", func_800F2658);
+INCLUDE_ASM("dra/nonmatchings/5087C", func_800F2658);
 
 bool func_800F27F4(s32 arg0) {
     if (arg0 == 0) {

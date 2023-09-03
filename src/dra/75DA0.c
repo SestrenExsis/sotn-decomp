@@ -4,19 +4,14 @@
 #include "sfx.h"
 
 void func_80115DA0(void) {
-    /**
-     * TODO:
-     * symbol D_80073428 is PLAYER.animFrameIdx
-     * but this function needs the type to be s32
-     */
-    PLAYER.accelerationY = 0;
-    PLAYER.accelerationX = 0;
+    PLAYER.velocityY = 0;
+    PLAYER.velocityX = 0;
     g_Player.D_80072EF4 = 0;
     g_Player.D_80072EFC = 4;
 
     switch (PLAYER.step_s) {
     case 0:
-        if (D_80073428 == 0x10008 &&
+        if (PLAYER.animFrameIdx == 8 && PLAYER.animFrameDuration == 1 &&
             func_8011AAFC(g_CurrentEntity, 0x79, 0) == NULL) {
             PLAYER.animFrameDuration = 2;
         }
@@ -27,7 +22,7 @@ void func_80115DA0(void) {
 
     case 2:
         func_80115C50();
-        if (D_80073428 == 0x10008 &&
+        if (PLAYER.animFrameIdx == 8 && PLAYER.animFrameDuration == 1 &&
             func_8011AAFC(g_CurrentEntity, 0x20079, 0) == NULL) {
             PLAYER.animFrameDuration = 2;
         }
@@ -38,7 +33,7 @@ void func_80115DA0(void) {
 
     case 4:
         func_80115C50();
-        if (D_80073428 == 0x10008 &&
+        if (PLAYER.animFrameIdx == 8 && PLAYER.animFrameDuration == 1 &&
             func_8011AAFC(g_CurrentEntity, 0x40079, 0) == NULL) {
             PLAYER.animFrameDuration = 2;
         }

@@ -1,7 +1,7 @@
+#define INCLUDE_ASM_NEW
 #include "common.h"
 #include "dra.h"
 #include "objects.h"
-#include "sfx.h"
 
 void func_80111830(void) {
     s32 var_v0;
@@ -70,7 +70,7 @@ void func_8011197C(void) {
     PLAYER.palette = D_801396E8;
 }
 
-INCLUDE_ASM("asm/us/dra/nonmatchings/71830", func_801119C4);
+INCLUDE_ASM("dra/nonmatchings/71830", func_801119C4);
 
 void func_80111CC0(void) {
     if (g_Player.D_80072F02 != 0) {
@@ -82,92 +82,58 @@ void func_80111CC0(void) {
 }
 
 bool func_80111D24(void) {
-    Collider res;
+    Collider collider;
     s32 speed = 0xC000;
     s16 posX = PLAYER.posX.i.hi;
     s16 posY = PLAYER.posY.i.hi;
     s32 hitboxLeftMargin;
     s32 hitboxRightMargin;
 
-    CheckCollision(posX - 7, posY, &res, 0);
-    hitboxLeftMargin = res.unk0 & 0x10;
-    CheckCollision(posX + 7, posY, &res, 0);
-    hitboxRightMargin = res.unk0 & 0x10;
+    CheckCollision(posX - 7, posY, &collider, 0);
+    hitboxLeftMargin = collider.effects & EFFECT_MIST_ONLY;
+    CheckCollision(posX + 7, posY, &collider, 0);
+    hitboxRightMargin = collider.effects & EFFECT_MIST_ONLY;
 
     if (hitboxRightMargin & hitboxLeftMargin) {
-        AccelerateX(speed);
+        SetSpeedX(speed);
         return true;
     } else if (hitboxRightMargin != 0) {
-        PLAYER.accelerationX = -speed;
+        PLAYER.velocityX = -speed;
         return true;
     } else if (hitboxLeftMargin != 0) {
-        PLAYER.accelerationX = speed;
+        PLAYER.velocityX = speed;
         return true;
     }
     return false;
 }
 
-INCLUDE_ASM("asm/us/dra/nonmatchings/71830", func_80111DE8);
+INCLUDE_ASM("dra/nonmatchings/71830", func_80111DE8);
 
 bool func_8011203C(void) {
     s32 collision = func_80111D24();
 
-    if (g_Entities[UNK_ENTITY_10].step == 5) {
+    if (g_Entities[E_WEAPON].step == 5) {
         if (collision == false) {
-            DestroyEntity(&g_Entities[UNK_ENTITY_10]);
+            DestroyEntity(&g_Entities[E_WEAPON]);
             return true;
         }
         return false;
-    } else if (g_Entities[UNK_ENTITY_10].step <= 2) {
-        if (g_Entities[UNK_ENTITY_10].step != 0) {
+    } else if (g_Entities[E_WEAPON].step <= 2) {
+        if (g_Entities[E_WEAPON].step != 0) {
             g_Player.unk46 = 0;
-            g_Entities[UNK_ENTITY_10].step = 3;
+            g_Entities[E_WEAPON].step = 3;
         }
     }
     return false;
 }
 
-INCLUDE_ASM("asm/us/dra/nonmatchings/71830", func_801120B4);
+INCLUDE_ASM("dra/nonmatchings/71830", func_801120B4);
 
 void func_80112B64(void) {
     if (func_8010FDF8(0x4301C) == 0) {
-        AccelerateX(0x18000);
+        SetSpeedX(0x18000);
         if (func_8010E27C() == 0) {
             func_8010E570(0);
         }
-    }
-}
-
-INCLUDE_ASM("asm/us/dra/nonmatchings/71830", func_80112BB0);
-
-void func_80113148(void) {
-    if (g_Player.D_80072F0A != 0 && g_Player.padTapped & PAD_CROSS) {
-        func_8010E83C(1);
-    } else if (func_8010FDF8(0x9029) == 0) {
-        func_8010E1EC(0x1000);
-        if (func_8010E27C() != 0) {
-            AccelerateX(0xC000);
-        }
-    }
-}
-
-INCLUDE_ASM("asm/us/dra/nonmatchings/71830", func_801131C4);
-
-void func_801139CC(s32 arg0) {
-    s32 move = PLAYER.facing != 0 ? -3 : 3;
-
-    PLAYER.posY.i.hi -= 22;
-    PLAYER.posX.i.hi = move + PLAYER.posX.i.hi;
-    func_8011AAFC(g_CurrentEntity, 0x10004, 0);
-    PLAYER.posY.i.hi = PLAYER.posY.i.hi + 22;
-    PLAYER.posX.i.hi = PLAYER.posX.i.hi - move;
-
-    if (arg0 & 1) {
-        func_80102CD8(3);
-        PlaySfx(NA_SE_SECRET_STAIRS);
-    }
-    if (arg0 & 2) {
-        PLAYER.accelerationX = 0;
-        PLAYER.accelerationY = 0;
     }
 }

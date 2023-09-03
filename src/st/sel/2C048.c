@@ -8,7 +8,7 @@
 
 Overlay g_StageOverlay = {
     /* 0x00 */ Update,
-    /* 0x04 */ TestCollisions,
+    /* 0x04 */ HandleMainMenu,
     /* 0x08 */ func_801B9C80,
     /* 0x0C */ InitRoomEntities,
     /* 0x10 */ NULL,
@@ -55,7 +55,7 @@ void func_801AC084(s32 arg0, s32 ypos) {
         prim->tpage = 0xC;
         prim->clut = 0x200;
         prim->priority = 0x11;
-        prim->blendMode = 8;
+        prim->blendMode = BLEND_VISIBLE;
         prim = prim->next;
     }
 }
@@ -78,13 +78,13 @@ void func_801ACC3C(void) {
 }
 
 void func_801ACC7C(void) {
-    s16 firstPolygonIndex;
+    s16 primIndex;
     POLY_GT4* poly;
     s32 i;
 
-    firstPolygonIndex = g_api.AllocPrimitives(4, 3);
-    poly = &g_PrimBuf[firstPolygonIndex];
-    D_801BAFC0 = firstPolygonIndex;
+    primIndex = g_api.AllocPrimitives(PRIM_GT4, 3);
+    poly = &g_PrimBuf[primIndex];
+    D_801BAFC0 = primIndex;
 
     for (i = 0; i < 3; i++) {
         func_801B26A0(poly, i << 7, 0, 128, 240, 0, 0);
@@ -95,9 +95,9 @@ void func_801ACC7C(void) {
         poly = (POLY_GT4*)poly->tag;
     }
 
-    firstPolygonIndex = g_api.AllocPrimitives(1, 2);
-    poly = &g_PrimBuf[firstPolygonIndex];
-    D_801BAFC4 = firstPolygonIndex;
+    primIndex = g_api.AllocPrimitives(PRIM_TILE, 2);
+    poly = &g_PrimBuf[primIndex];
+    D_801BAFC4 = primIndex;
 
     for (i = 0; poly != NULL; i++) {
         poly->x0 = (i & 1) * 192;

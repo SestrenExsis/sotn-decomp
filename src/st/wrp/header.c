@@ -2,20 +2,20 @@
 
 void Update(void);
 void TestCollisions(void);
-void CreateEntityWhenInHorizontalRange(LayoutObject*);
+void CreateEntityWhenInHorizontalRange(LayoutEntity*);
 void func_8018A520(s16);
 void func_8018A7AC(void);
 void func_8018CAB0(void);
 void InitRoomEntities(s32 objLayoutId);
 void func_801916C4(u16);
-void func_80192F40(u8*, u8);
+void BottomCornerText(u8*, u8);
 
 RoomHeader g_Rooms[];
 s16** g_SpriteBanks[];
 void* g_Cluts[];
 RoomDef g_TileLayers[];
 void* g_EntityGfxs[];
-void func_80188514(void);
+void UpdateStageEntities(void);
 
 Overlay g_StageOverlay = {
     /* 0x00 */ Update,
@@ -28,7 +28,7 @@ Overlay g_StageOverlay = {
     /* 0x1C */ NULL,
     /* 0x20 */ g_TileLayers,
     /* 0x24 */ g_EntityGfxs,
-    /* 0x28 */ func_80188514,
+    /* 0x28 */ UpdateStageEntities,
     /* 0x2C */ 0x00000000,
     /* 0x30 */ 0x00000000,
     /* 0x34 */ 0x00000000,

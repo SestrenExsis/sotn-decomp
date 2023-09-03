@@ -1,8 +1,12 @@
-
 #include "common.h"
 #include "game.h"
 #include "objects.h"
 #include "sfx.h"
+
+typedef enum {
+    E_NONE,
+    E_UNK_1,
+} EntityIDs;
 
 typedef enum {
     Dummy,
@@ -17,14 +21,14 @@ void func_8015C920(AnimationFrame* unk0);
 extern void func_8015C93C(s32 speed);
 extern s32 func_8015C9CC(void);
 extern void func_8015CA84(s32 speed);
-extern void func_8015CCC8(s32 arg0, s32 accelerationX);
-extern void func_8015CD98(s32 accelerationX);
+extern void func_8015CCC8(s32 arg0, s32 velocityX);
+extern void func_8015CD98(s32 velocityX);
 extern void func_8015CDE0(s32);
 extern void func_8015CE7C(void);
 extern void func_8015CF08(void);
 extern void func_8015D020(void);
 extern bool func_8015DBB0(s32);
-extern void func_8015E380(const char* str);
+extern void DebugShowWaitInfo(const char* str);
 extern void func_8015F9F0(Entity* entity);
 extern void func_8015FAB8(Entity*);
 extern s32 func_8015FDB0(POLY_GT4* poly, s16 posX, s16 posY);
@@ -46,7 +50,13 @@ extern s16 D_80154606;
 extern u8 D_80154674[][4];
 extern SubweaponDef D_80154688[];
 extern AnimationFrame* D_80154924;
+extern s32 D_80154ED4;
+extern s32 D_80154EF8;
 extern s32 D_80155368[];
+extern AnimationFrame D_80154C80[];
+extern AnimationFrame D_80154DC8[];
+extern AnimationFrame D_80154E04[];
+extern AnimationFrame* D_80154E38;
 extern AnimationFrame* D_80155394;
 extern AnimationFrame* D_8015539C;
 extern AnimationFrame* D_801553BC;
@@ -61,6 +71,8 @@ extern AnimationFrame* D_80155528;
 extern AnimationFrame* D_80155534;
 extern AnimationFrame* D_8015555C;
 extern AnimationFrame* D_801555A8;
+extern AnimationFrame D_801555E8[];
+extern AnimationFrame D_80155638[];
 extern AnimationFrame* D_80155670;
 extern AnimationFrame* D_80155730;
 extern AnimationFrame* D_80155748;
@@ -86,7 +98,7 @@ extern AnimationFrame* D_80155EA8;
 extern s8 D_80156904;
 extern s32 D_80174F74;
 extern s32 D_80174F78;
-extern s32 D_80174F7C;
+extern s32 g_DebugWaitInfoTimer;
 extern u8 D_80174FAC;
 extern u8 D_80174FB0;
 extern u8 D_80174FB4;

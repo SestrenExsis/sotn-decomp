@@ -39,7 +39,7 @@ extern CdFileSeq D_800ACCF8[];
 extern s32 D_800ACD10[];
 extern void (*g_CdCallbacks[])(void);
 extern s32 D_800ACD7C;
-extern s32 D_800BD1C8[];
+extern s32 g_VabAddrs[];
 extern u8 D_80137F96;
 extern s32 D_80137FA0;
 extern s16 D_80137FA8;
@@ -57,23 +57,16 @@ typedef struct {
     s32 D_80137F7C;
     u8* overlayCopySrc;
     u8* overlayCopyDst;
-    s8* D_80137F88;
+    s8* addr;
     s32 overlayBlockCount;
     s32 overlayLastBlockSize;
-    s16 D_80137F94;
+    short g_VabId;
 } CdThing;
 
-CdCallbacks g_CdCallback;
+extern CdCallbacks g_CdCallback;
 extern CdThing g_Cd;
 extern CdlLOC g_CdLoc;
-extern s32 g_Cd_D_80137F68;
-extern s32 g_Cd_D_80137F70;
-extern s32 g_Cd_D_80137F74;
-extern s32 g_Cd_D_80137F78[];
-extern s8* g_Cd_D_80137F88;
-extern s32 g_Cd_overlayBlockCount;
-extern s32 g_Cd_overlayLastBlockSize;
-extern s16 D_80137F94;
+extern short g_VabId;
 
 void func_801073C0(void) {
     CdReadyCallback(NULL);
@@ -220,7 +213,7 @@ void func_801078C4(void) {
     } else {
         len = g_Cd.overlayLastBlockSize;
     }
-    g_Cd.overlayCopyDst = TO_CD_BLOCK(g_Cd.D_80137F74) + (u8*)&D_8007EFE4;
+    g_Cd.overlayCopyDst = TO_CD_BLOCK(g_Cd.D_80137F74) + g_Pix[0];
     g_Cd.overlayCopySrc = TO_CD_BLOCK(g_Cd.D_80137F70) + D_801EC000;
 #if USE_MICRO_OPTIMIZATIONS == 1
     MEMCPY(g_Cd.overlayCopyDst, g_Cd.overlayCopySrc, len);
@@ -248,26 +241,51 @@ void func_801078C4(void) {
         g_Cd.D_80137F74 = 0;
         CdDataCallback(CopySupportOvlCallback);
         if (g_CdCallback == CdCallback_12) {
-            PixPattern* p = &D_8007EFE4;
-            LoadTPage(p, 0, 0, 0x240, 0x100, 0x100, 0x80);
+            LoadTPage(g_Pix[0], 0, 0, 0x240, 0x100, 0x100, 0x80);
         } else if (g_CdCallback == CdCallback_13) {
-            PixPattern* p = &D_8007EFE4;
-            LoadTPage(p, 0, 0, 0x240, 0x180, 0x100, 0x80);
+            LoadTPage(g_Pix[0], 0, 0, 0x240, 0x180, 0x100, 0x80);
         } else {
-            PixPattern* p = &D_8007EFE4;
-            LoadTPage(p, 0, 0, 0x2C0, 0x100, 0x100, 0x80);
-            LoadTPage(p + 0x1000, 0, 0, 0x2C0, 0x180, 0x80, 0x80);
+            LoadTPage(g_Pix[0], 0, 0, 0x2C0, 0x100, 0x100, 0x80);
+            LoadTPage(g_Pix[2], 0, 0, 0x2C0, 0x180, 0x80, 0x80);
         }
     }
 }
 
-// 101
-INCLUDE_ASM("asm/us/dra/nonmatchings/cd", func_80107B04);
+void func_80107B04(void) {
+    s32 i;
+    s32 len;
+
+    if (g_Cd.overlayBlockCount != 0) {
+        len = CD_BLOCK_LEN;
+    } else {
+        len = g_Cd.overlayLastBlockSize;
+    }
+    g_Cd.overlayCopyDst = TO_CD_BLOCK(g_Cd.D_80137F74) + g_Pix[0];
+    g_Cd.overlayCopySrc = TO_CD_BLOCK(g_Cd.D_80137F70) + D_801EC000;
+#if USE_MICRO_OPTIMIZATIONS == 1
+    MEMCPY(g_Cd.overlayCopyDst, g_Cd.overlayCopySrc, len);
+#else
+    for (i = 0; i < len; i++) {
+        *g_Cd.overlayCopyDst = *g_Cd.overlayCopySrc;
+        g_Cd.overlayCopySrc++;
+        g_Cd.overlayCopyDst++;
+    }
+#endif
+    g_Cd.D_80137F70 = (g_Cd.D_80137F70 + 1) & 7;
+    g_Cd.D_80137F74++;
+    g_Cd.overlayBlockCount--;
+    if (g_Cd.overlayBlockCount < 0 ||
+        (g_Cd.overlayBlockCount == 0 && g_Cd.overlayLastBlockSize == 0)) {
+        LoadTPage(g_Pix[0], 2, 0, 0x20, 0x100, 0x60, 0x70);
+        g_Cd.D_80137F78 = 1;
+        CdDataCallback(NULL);
+    }
+}
 
 void func_80107C6C(void) {
     s32 len;
 
-    if (g_Cd.D_80137F74 != 0 && func_800219E0(0) != 1) {
+    if (g_Cd.D_80137F74 != 0 && (s16)SsVabTransCompleted(SS_IMEDIATE) != 1) {
         func_801073C0();
         g_Cd.D_80137F78 = -1;
         return;
@@ -278,7 +296,7 @@ void func_80107C6C(void) {
     } else {
         len = g_Cd.overlayLastBlockSize;
     }
-    D_80137FA8 = func_80021880(g_Cd.overlayCopySrc, len, (s32)D_80137F94);
+    D_80137FA8 = SsVabTransBodyPartly(g_Cd.overlayCopySrc, len, g_VabId);
     if (D_80137FA8 == -1) {
         CdDataCallback(NULL);
         g_Cd.D_80137F78 = -3;
@@ -302,7 +320,7 @@ void func_80107DB4(void) {
     } else {
         len = g_Cd.overlayLastBlockSize;
     }
-    g_Cd.overlayCopyDst = TO_CD_BLOCK(g_Cd.D_80137F74) + g_Cd.D_80137F88;
+    g_Cd.overlayCopyDst = TO_CD_BLOCK(g_Cd.D_80137F74) + g_Cd.addr;
     g_Cd.overlayCopySrc = TO_CD_BLOCK(g_Cd.D_80137F70) + D_801EC000;
 #if USE_MICRO_OPTIMIZATIONS == 1
     MEMCPY(g_Cd.overlayCopyDst, g_Cd.overlayCopySrc, len);
@@ -323,29 +341,76 @@ void func_80107DB4(void) {
     }
 }
 
-// 138
-INCLUDE_ASM("asm/us/dra/nonmatchings/cd", func_80107EF0);
+void func_80107EF0(void) {
+    s32 temp_v1;
+    s32 temp_v1_3;
+    s32 var_a1;
+    s32 var_v0;
+    s32 var_v0_2;
+    u8** temp_a0;
+    void (*var_a0)();
+    s32 i;
+    s32 len;
+    short res;
+
+    if (g_Cd.overlayBlockCount != 0) {
+        len = CD_BLOCK_LEN;
+    } else {
+        len = g_Cd.overlayLastBlockSize;
+    }
+    g_Cd.overlayCopyDst = TO_CD_BLOCK(g_Cd.D_80137F74) + g_Cd.addr;
+    g_Cd.overlayCopySrc = TO_CD_BLOCK(g_Cd.D_80137F70) + D_801EC000;
+#if USE_MICRO_OPTIMIZATIONS == 1
+    MEMCPY(g_Cd.overlayCopyDst, g_Cd.overlayCopySrc, len);
+#else
+    for (i = 0; i < len; i++) {
+        *g_Cd.overlayCopyDst = *g_Cd.overlayCopySrc;
+        g_Cd.overlayCopySrc++;
+        g_Cd.overlayCopyDst++;
+    }
+#endif
+    g_Cd.D_80137F70 = (g_Cd.D_80137F70 + 1) & 7;
+    g_Cd.D_80137F74++;
+    g_Cd.overlayBlockCount--;
+    if (g_Cd.overlayBlockCount < 0 ||
+        (g_Cd.overlayBlockCount == 0 && g_Cd.overlayLastBlockSize == 0)) {
+        res = SsVabOpenHeadSticky(g_Cd.addr, g_VabId, g_VabAddrs[g_VabId]);
+        if (res < 0) {
+            g_Cd.D_80137F78 = -2;
+            CdDataCallback(NULL);
+        } else {
+            CdFile* cdFile = D_800ACC74[D_80137F96];
+            g_Cd.overlayBlockCount = cdFile->size / CD_BLOCK_LEN;
+            g_Cd.overlayLastBlockSize =
+                cdFile->size - cdFile->size / CD_BLOCK_LEN * CD_BLOCK_LEN;
+            g_Cd.D_80137F74 = 0;
+            CdDataCallback(func_80107C6C);
+        }
+    }
+}
 
 void func_801080DC(void) {
     int new_var2;
     s32 new_var;
+    CdThing* new_var3;
     RECT* r;
 
     new_var2 = 6;
     if (g_Cd.D_80137F70 == 3 || g_Cd.D_80137F70 == 7) {
         switch (g_CdCallback) {
         case CdCallback_1:
-            g_Cd.dstRect.x = D_800AC958[g_Cd_D_80137F74];
-            g_Cd.dstRect.y = ((g_Cd_D_80137F74 << new_var2) & 0x80) + 0x100;
+            g_Cd.dstRect.x = D_800AC958[g_Cd.D_80137F74];
+            g_Cd.dstRect.y = ((g_Cd.D_80137F74 << new_var2) & 0x80) + 0x100;
             g_Cd.dstRect.w = 0x20;
             g_Cd.dstRect.h = 0x80;
-            if (g_Cd_D_80137F74 == 0x1A) {
+            if (g_Cd.D_80137F74 == 0x1A) {
                 g_Cd.dstRect.y = 0x181;
                 g_Cd.dstRect.h = 0x7F;
-                if (!g_Cd_D_80137F74 && !g_Cd_D_80137F74) {
+                if (!g_Cd.D_80137F74 && !g_Cd.D_80137F74) {
                 }
             }
-            if (g_Cd_D_80137F74 == 0x20) {
+            new_var3 = &g_Cd;
+            if (new_var3->D_80137F74 == 0x20) {
                 g_Cd.dstRect.x = 0;
                 g_Cd.dstRect.y = 0xF0;
                 g_Cd.dstRect.w = 0x100;
@@ -428,7 +493,13 @@ void func_80107460(void);
 void PlaySfx(s32);
 void SsVabClose(short);
 
-void func_80108448(void) {
+void UpdateCd(void) {
+#if defined(VERSION_US)
+    const bool UseEuWarning = true;
+#elif defined(VERSION_HD)
+    const bool UseEuWarning = false;
+#endif
+
     unsigned char result[8];
     unsigned char setModeArg[24];
     u32* var_v1;
@@ -444,7 +515,6 @@ void func_80108448(void) {
     u32 temp_v1_3;
     u32 temp_v1_4;
     u32* temp_s0;
-    u8 temp_a0;
     u32* var_a1;
     u16* clutAddr;
 
@@ -458,7 +528,7 @@ void func_80108448(void) {
     g_IsUsingCd = g_CdStep;
     if (g_LoadFile == CdFile_StagePrg) {
         cdFile = &D_800ACC34;
-        if (g_StageId == STAGE_EU_WARNING) {
+        if (UseEuWarning && g_StageId == STAGE_EU_WARNING) {
             D_800ACC34.loc = OFF_WARNING_TIM;
             D_800ACC34.size = LEN_WARNING_TIM;
             D_800ACC34.nextCdFileType = CdFile_NoNext;
@@ -567,14 +637,13 @@ void func_80108448(void) {
         if (cdFileSize < 0) {
             cdFileSize += 0x1FFF;
         }
-        g_Cd_D_80137F68 = cdFileSize >> 13;
-        temp_a0 = cdFile->unkC;
-        D_80137F94 = temp_a0;
+        g_Cd.D_80137F68 = cdFileSize >> 13;
+        g_VabId = cdFile->vabId;
         var_v0_3 = *pLoadFile;
         if (var_v0_3 < 0) {
             var_v0_3 += 0x7FF;
         }
-        g_Cd_overlayBlockCount = var_v0_3 >> 11;
+        g_Cd.overlayBlockCount = var_v0_3 >> 11;
         temp_v1_2 = (var_v0_4 = *pLoadFile);
         if (temp_v1_2 < 0) {
             var_v0_4 += 0x7FF;
@@ -582,13 +651,13 @@ void func_80108448(void) {
 
         // how many bytes long will be the last block to read?
         // eg. if the file is 0x820 long, then the value will be 0x20
-        g_Cd_overlayLastBlockSize = temp_v1_2 - (var_v0_4 >> 11 << 11);
+        g_Cd.overlayLastBlockSize = temp_v1_2 - (var_v0_4 >> 11 << 11);
         D_80137F96 = cdFile->unkF;
-        g_Cd_D_80137F88 = D_800ACD10[cdFile->unkD];
+        g_Cd.addr = D_800ACD10[cdFile->unkD];
         D_80137F6C = 0;
-        g_Cd_D_80137F78[0] = 0;
-        g_Cd_D_80137F70 = 0;
-        g_Cd_D_80137F74 = 0;
+        g_Cd.D_80137F70 = 0;
+        g_Cd.D_80137F74 = 0;
+        g_Cd.D_80137F78 = 0;
         if (g_LoadFile & 0x8000) {
             CdIntToPos(cdFile->loc, &cd->loc);
             if (CdControl(CdlSeekL, &cd->loc, 0) != 0) {
@@ -596,19 +665,19 @@ void func_80108448(void) {
             }
         } else {
             if (cd->cb == CdCallback_16 || cd->cb == CdCallback_Vh) {
-                SsVabClose(temp_a0);
+                SsVabClose(g_VabId);
             }
             if (g_CdCallback != CdCallback_16 &&
                     g_CdCallback != CdCallback_Vh ||
-                func_800219E0(0) == 1) {
+                (s16)SsVabTransCompleted(SS_IMEDIATE) == 1) {
                 CdIntToPos(cdFile->loc, &g_CdLoc);
                 if (g_CdCallback == CdCallback_12) {
-                    CdIntToPos(D_8003C908.D_8003C90C * 14 + cdFile->loc,
-                               &g_CdLoc);
+                    CdIntToPos(
+                        D_8003C908.D_8003C90C * 14 + cdFile->loc, &g_CdLoc);
                 }
                 if (g_CdCallback == CdCallback_13) {
-                    CdIntToPos(D_8003C908.D_8003C910 * 14 + cdFile->loc,
-                               &g_CdLoc);
+                    CdIntToPos(
+                        D_8003C908.D_8003C910 * 14 + cdFile->loc, &g_CdLoc);
                 }
                 if (g_CdCallback == CdCallback_14) {
                     CdIntToPos(g_mapTilesetId * 11 + cdFile->loc, &g_CdLoc);
@@ -706,13 +775,13 @@ void func_80108448(void) {
             break;
 
         case CdCallback_16:
-            D_80137FB0 = func_80021350(g_Cd.D_80137F88, D_80137F94,
-                                       D_800BD1C8[D_80137F94]);
+            D_80137FB0 = (short)SsVabOpenHeadSticky(
+                g_Cd.addr, g_VabId, g_VabAddrs[g_VabId]);
             break;
 
         case CdCallback_17:
         case CdCallback_Vh:
-            while (func_800219E0(0) != 1) {
+            while ((s16)SsVabTransCompleted(SS_IMEDIATE) != 1) {
             }
             break;
 

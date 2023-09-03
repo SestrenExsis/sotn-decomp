@@ -32,7 +32,33 @@ void func_801B68E0(s32 arg0) {
     D_801BC390 = 1;
 }
 
-INCLUDE_ASM("asm/us/st/sel/nonmatchings/3642C", func_801B690C);
+void func_801B690C(u8 ySteps, Entity* self) {
+    s32 primIndex = g_Dialogue.nextCharY + 1;
+    Primitive* prim;
+    s32 i;
+
+    while (primIndex >= 5) {
+        primIndex -= 5;
+    }
+
+    if (self->step_s == 0) {
+        prim = g_Dialogue.prim[primIndex];
+        prim->v1 -= ySteps;
+        prim->v0 = ySteps + prim->v0;
+        if (prim->v1 == 0) {
+            self->step_s++;
+            prim->blendMode = 8;
+        }
+    }
+
+    for (i = 0; i < 5; i++) {
+        if (i != primIndex) {
+            prim = g_Dialogue.prim[i];
+            prim->y0 -= ySteps;
+        }
+    }
+    g_Dialogue.portraitAnimTimer++;
+}
 
 INCLUDE_ASM("asm/us/st/sel/nonmatchings/3642C", func_801B69F8);
 
@@ -152,13 +178,13 @@ u8 func_801B881C(s32 arg0, s32 arg1) {
 }
 #endif
 
-s32 func_801B884C(s32 cardSlot, s32 cardSubSlot, const char* saveFile,
-                  void* saveData, s32 saveLen) {
+s32 MemcardReadFile(
+    s32 slot, s32 block, const char* name, void* data, s32 saveLen) {
     char savePath[32];
     s32 fd;
     s32 actualSaveLen;
 
-    sprintf(savePath, g_MemcardSavePath, cardSlot, cardSubSlot, saveFile);
+    sprintf(savePath, g_MemcardSavePath, slot, block, name);
     if (saveLen == 0) {
         actualSaveLen = 0x2B8;
     } else {
@@ -172,43 +198,46 @@ s32 func_801B884C(s32 cardSlot, s32 cardSubSlot, const char* saveFile,
 
     D_801BC2FC = fd;
     _clear_event();
-    read(fd, saveData, actualSaveLen);
+    read(fd, data, actualSaveLen);
     return 0;
 }
 
-s32 func_801B88F4(s32 arg0, s32 arg1, s32 arg2, void* arg3, s32 arg4,
-                  s32 arg5) {
+s32 MemcardWriteFile(
+    s32 slot, s32 block, const char* name, void* data, s32 flags, s32 create) {
     s8 savePath[32];
-    s32 new_var;
-    s32 device;
+    s32 len;
+    s32 fd;
 
-    sprintf(savePath, &g_MemcardSavePath, arg0, arg1, arg2);
+    sprintf(savePath, &g_MemcardSavePath, slot, block, name);
 
-    if (arg5 == 1) {
-        device = open(savePath, (arg4 << 0x10) | 0x200);
-        if (device == -1) {
+    // known PSX bug: when creating a a file with open(), any read or write
+    // will immediately fail. The workaround is to close the file and open
+    // it again.
+    if (create == 1) {
+        fd = open(savePath, (flags << 0x10) | O_CREAT);
+        if (fd == -1) {
             return -2;
         } else {
-            close(device);
+            close(fd);
         }
     }
 
-    new_var = arg4 << 0xD;
-    device = open(savePath, 0x8002);
+    len = flags << 0xD;
+    fd = open(savePath, O_WRONLY | O_NOWAIT);
 
-    if (device == (-1)) {
+    if (fd == -1) {
         return -1;
     } else {
-        D_801BC2FC = device;
+        D_801BC2FC = fd;
         _clear_event();
-        write(device, arg3, new_var);
+        write(fd, data, len);
     }
     return 0;
 }
 
-s32 func_801B89C8(s32 cardSlot, s32 cardBlock, const char* path) {
+s32 MemcardEraseFile(s32 slot, s32 block, const char* name) {
     char buf[0x20];
-    sprintf(buf, g_MemcardSavePath, cardSlot, cardBlock, path);
+    sprintf(buf, g_MemcardSavePath, slot, block, name);
     return -(erase(buf) == 0);
 }
 

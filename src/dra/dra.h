@@ -2,6 +2,34 @@
 #define DRA_H
 
 #include "game.h"
+#include "weapon.h"
+#include "items.h"
+
+#define DAMAGE_FLAG_NORMAL 0x0000
+#define DAMAGE_FLAG_CRITICAL 0x4000
+#define DAMAGE_FLAG_ABSORB 0x8000
+#define DAMAGE_FLAG_IMMUNE 0xC000
+
+#define SFX_START (0x600)
+#define SFX_LAST (0x8E0)
+#define MAX_SND_COUNT (0x100)
+
+#define SEQ_TABLE_S_MAX 0x10
+#define SEQ_TABLE_T_MAX 1
+
+typedef enum {
+    DEBUG_NORMAL,
+    DEBUG_TEXTURE_VIEWER,
+    DEBUG_TILESET_VIEWER,
+    DEBUG_PALETTE_VIEWER,
+    DEBUG_END,
+} DebugMode;
+
+typedef enum {
+    DEBUG_COLOR_CHANNEL_RED,
+    DEBUG_COLOR_CHANNEL_GREEN,
+    DEBUG_COLOR_CHANNEL_BLUE,
+} DebugColorChannel;
 
 typedef enum {
     SimFileType_System,
@@ -99,6 +127,14 @@ typedef enum {
 } CdCallbacks;
 
 typedef enum {
+    E_NONE,
+    E_UNK_1,
+
+    ENTITY_13 = 0x13,
+    E_UNK_22 = 0x22,
+} EntityIDs;
+
+typedef enum {
     Player_Stand,
     Player_Walk,
     Player_Crouch,
@@ -130,12 +166,21 @@ typedef enum {
     Player_Unk40,
 } PlayerSteps;
 
-// Info necessary to load a file from the Cd in func_80108448
+typedef enum {
+    STATUS_AILMENT_POISON,
+    STATUS_AILMENT_CURSE,
+    STATUS_AILMENT_PETRIFIED,
+    STATUS_AILMENT_DARK_METAMORPHOSIS,
+    STATUS_AILMENT_UNK04,
+    STATUS_AILMENT_UNK05, // used by EntityPlayerPinkEffect
+} StatusAilments;
+
+// Info necessary to load a file from the Cd in UpdateCd
 typedef struct {
     s32 loc;        // lba offset, might be a s32
     CdCallbacks cb; // sets g_CdCallback
     s32 size;       // file size
-    u8 unkC;        // index for D_800BD1C8, between 0 and 5?
+    u8 vabId;       // index for g_VabAddrs, between 0 and 5?
     u8 unkD;        // index for D_800ACD10, between 0 and 6?
     u8 nextCdFileType;
     u8 unkF;
@@ -175,27 +220,43 @@ typedef struct {
     /* 0x00 */ const char* name;
     /* 0x04 */ const char* combo;
     /* 0x08 */ const char* description;
-    /* 0x0C */ s8 mpUsage;
-    /* 0x0D */ s8 unk0D;
-    /* 0x0E */ s16 unk0E;
-    /* 0x10 */ s16 unk10;
-    /* 0x12 */ s16 unk12;
-    /* 0x14 */ s16 unk14;
+    /* 0x0C */ u8 mpUsage;
+    /* 0x0D */ s8 nFramesInvincibility;
+    /* 0x0E */ s16 stunFrames;
+    /* 0x10 */ s16 hitboxState;
+    /* 0x12 */ s16 hitEffect;
+    /* 0x14 */ s16 entityRoomIndex;
     /* 0x16 */ u16 attackElement;
     /* 0x18 */ s16 attack;
     /* 0x1A */ s16 unk1A;
 } SpellDef;
 
 typedef struct {
-    void (*func_8017A000)(void);
-    void* unk04;
-    void* unk08;
-    void* unk0C;
-    void* unk10;
-    void* unk14;
-    s32 (*func_8017A018)();
-    void (*func_8017A01C)(u8);
-} WeaponOvl;
+    u32 unk0;
+    u32 damageKind;
+    u32 unk8;
+} DamageParam;
+
+typedef struct {
+    /* 8013761C */ MenuContext menus[3]; // 761C, 763A, 7658
+    /* 80137676 */ s16 D_80137676;
+    /* 80137678 */ s16 D_80137678[6];
+    /* 80137684 */ s32 unused1; // No known use yet, one may be found
+    /* 80137688 */ s16 D_80137688;
+    /* 8013768A */ s16 D_8013768A;
+    /* 8013768C */ u16 D_8013768C;
+    /* 8013768E */ s16 unused2; // No known use yet, one may be found
+    /* 80137690 */ s16 unused3; // No known use yet, one may be found
+    /* 80137692 */ u8 D_80137692;
+} MenuData;
+
+// All the Joseph's Cloak color fields are in RGB555 format
+typedef struct {
+    u16 liningDark;
+    u16 liningLight;
+    u16 exteriorDark;
+    u16 exteriorLight;
+} JosephsCloak;
 
 extern void (*D_800A0004)(); // TODO pointer to 0x50 array of functions
 extern s32 D_800A0144[];
@@ -203,6 +264,8 @@ extern u32 D_800A0158;
 extern s32 D_800A015C;
 extern s16 D_800A0160[];
 extern u8 D_800A0170[];
+extern u8 D_800A01B0[];
+extern RECT D_800A01C0[];
 extern s32 D_800A0248;
 extern SimFile D_800A024C[];
 extern SimFile D_800A036C[];
@@ -217,9 +280,12 @@ extern u8 D_800A243C[];
 extern RoomBossTeleport D_800A297C[];
 extern s32 D_800A2D68;
 extern s32 D_800A2D6C;
+extern u8 D_800A2D7C[];
 extern u8 c_chPlaystationButtons[];
 extern u8 c_chShoulderButtons[];
+extern RECT D_800A2D90;
 extern Unkstruct_800A2D98 D_800A2D98[];
+extern MenuContextInit MenuContextData[];
 extern u8 D_800A2EE8[];
 extern u8 D_800A2EED;
 extern u8 D_800A2EF8[];
@@ -232,6 +298,8 @@ extern u8 D_800A2F38[];
 extern u8 D_800A2F3D;
 extern u16 D_800A2F48[];
 extern u16 D_800A2F64[];
+extern s16 D_800A2F7E[];
+extern u8 D_800A2F9B[];
 extern s32 D_800A2FBC[];
 extern s32 D_800A2FC0[];
 
@@ -277,8 +345,10 @@ extern const char* D_800A83AC[];
 extern const char* c_strSSword;
 extern s32 D_800A3194[];
 extern Unkstruct_801092E8 D_800A37D8;
+extern JosephsCloak g_JosephsCloak;
 extern Lba g_StagesLba[];
 extern Unsktruct_800EAF28* D_800A3B5C[];
+extern UnkStructClut* D_800A3BB8[];
 extern SubweaponDef g_Subweapons[];
 extern SpellDef g_SpellDefs[];
 extern EnemyDef g_EnemyDefs[];
@@ -286,7 +356,9 @@ extern s32 c_arrExpNext[];
 extern Equipment D_800A4B04[];
 extern Accessory D_800A7718[];
 extern Unkstruct_800A7734 D_800A7734[];
-extern s8 D_800A841C[]; // related to player MP
+extern RelicDesc g_RelicsDesc[];
+extern unkStruct_800A872C D_800A872C[];
+extern u32 D_800AC90C;
 extern u16 D_800AC958[];
 extern s32 D_800ACC64[]; // probably a struct
 extern Vram g_Vram;
@@ -295,9 +367,14 @@ extern u8 D_800ACFB4[][4];
 extern s32 D_800ACE48[];
 extern Unkstruct_800ACEC6 D_800ACEC6;
 extern u8 D_800ACF4C[];
+extern unkstruct_800ACF7C D_800ACF7C[];
 extern s16 D_800ACF8A[]; // collection of sounds?
 extern s16 D_800ACF60[]; // collection of sounds?
+extern u8 D_800AD094[];
+extern PfnEntityUpdate D_800AD0C4[];
+extern AnimSoundEvent* D_800AD53C[];
 extern s32 D_800ADC44;
+extern RECT D_800AE130;
 extern s32 D_800AE270[];
 extern AnimationFrame* D_800AE294;
 extern s16 D_800AFDA6;
@@ -323,9 +400,14 @@ extern const char aPbav_1[];
 extern const char aPbav_2[];
 extern s16 D_800BD07C[];
 extern s16 D_800BD19C[];
-extern s32 D_800BD1C0;
+extern s32 g_DebugEnabled;
 extern s32 D_800BD1C4;
+extern s32 g_VabAddrs[6];
+extern s32 D_800C1ECC[];
+extern PixPattern* D_800C52F8[];
 extern const char D_800DB524[];
+extern Unkstruct_800F9F40 D_800DC6EC;
+extern Unkstruct_800F9F40 D_800DC70C[];
 extern const char a0104x04x;
 extern const char a2304x04x;
 extern const char aBlue;
@@ -347,29 +429,32 @@ extern const char aSp03x;
 extern const char aSp1603x;
 extern const char aTile03x;
 extern Unkstruct_800BF554 D_800BF554[];
-extern s32 D_801362AC;
-extern s32 D_801362B0;
-extern s32 D_801362B4;
+extern char* aAtariNuki;
+extern s32 g_DebugFreeze;
+extern s32 g_DebugHitboxViewMode;
+extern u32 D_801362B4;
 extern s32 D_801362B8;
 extern s32 D_801362BC;
 extern s32 g_DebugPalIdx;
-extern u32 D_801362C4;
-extern s32 D_801362C8;
+extern DebugColorChannel g_DebugColorChannel;
+extern u32 D_801362C8;
 extern u32* g_CurrentOT;
 extern s32 D_801362D0[];
 extern s32 D_801362D4;
-extern s32 D_801362D8;
+extern s32 g_DebugIsRecordingVideo;
 extern GpuUsage g_GpuMaxUsage;
 extern s32 g_softResetTimer;
-extern s32 D_80136300;
+extern s32 g_DebugWaitInfoTimer;
+extern s32 g_DebugRecordVideoFid;
 extern s16 D_80136308[];
 extern s32 D_8013640C;
+extern s32 D_80136410;
 extern s32 D_80136414[];
 extern SimFile* D_8013644C;
 extern SimFile D_80136450;
 extern s16 D_80136460[];
 extern s16 D_80136C60[];
-extern u8 D_80137460[]; // button timers
+extern u8 g_PadsRepeatTimer[BUTTON_COUNT * PAD_COUNT];
 extern s32 D_80137470;
 extern s32 D_80137474;
 extern u16 D_80137478[];
@@ -396,35 +481,28 @@ extern s32 g_IsSelectingEquipment;
 extern s32 g_EquipmentCursor;
 extern s32 D_80137614;
 extern s32 D_80137618;
-
-/**
- * can't use "extern MenuContext D_8013761C[]";
- * as it's 2-byte aligned
- */
-extern u8 D_8013761C[];
-extern s32* D_8013763A; // type MenuContext ?
-extern s16 D_8013767C;
-extern s16 D_80137688;
-extern u16 D_8013768C;
-extern u8 D_80137692;
+extern MenuData g_MenuData;
 extern u8 D_801376B0;
+extern s16 D_801376C4;
+extern s16 D_801376C8;
 extern s32 D_8013783C;
 extern s32 D_801377FC[];
 extern s32 D_80137840;
 extern s32 D_80137844[];
 extern s32 D_80137848[];
 extern s32 D_8013784C;
-extern s32 g_StatusAttackRightHand;
-extern s32 g_StatusAttackLeftHand;
-extern s32 g_StatusDefenseEquip;
-extern s32 g_StatusPlayerStatsTotal[];
+extern s32 g_NewAttackRightHand;
+extern s32 g_NewAttackLeftHand;
+extern s32 g_NewDefenseEquip;
+extern s32 g_NewPlayerStatsTotal[];
 extern s8* D_8013794C; // Pointer to texture pattern
 extern s32 D_80137950;
 extern s32 D_80137954;
 extern s32 D_80137960;
 extern s32 D_80137964;
 extern s32 D_80137968;
-extern s32 D_8013796C;
+// not actually an array, likely a struct member
+extern u32 g_DisplayHP[];
 extern s32 D_80137970;
 extern s32 D_80137974;
 extern u32 D_80137978;
@@ -435,12 +513,13 @@ extern u32 D_80137988;
 extern u32 D_8013798C;
 extern Unkstruct_80137990 D_80137990;
 extern s32 D_80137994;
-extern s32 D_80137998;
+// not actually an array, likely a struct member
+extern s32 g_HealingMailTimer[];
 extern u32 D_8013799C;
 extern s32 D_801379A0;
 extern s32 D_801379A4;
 extern s32 D_801379A8;
-extern u16 D_801379AC[2];
+extern Unkstruct_80102CD8 D_801379AC;
 extern s32 D_801379B0;
 extern s32 D_80137E40;
 extern s32 D_80137E44;
@@ -458,19 +537,24 @@ extern s32 D_80137F9C;
 extern s32 D_80137FB4;
 extern s32 D_80137FB8;
 extern s32 D_80137FBC;
+extern s32 D_80137FE4;
+extern s32 D_80137FE8;
+extern s32 D_80138004;
 extern s32 D_80138008;
+extern s32 D_8013800C[];
 extern u8 D_8013803C;
 extern u8 D_80138040;
 extern u8 D_80138044;
 extern u8 D_80138048;
 extern s32 D_8013808C;
 extern s32 D_8013841C;
+extern s32 D_8013842C;
 extern s32 D_80138430;
 extern s32 D_80138438;
 extern s32 D_80138440;
 extern s32 D_80138444;
 extern s32 D_80138454;
-extern s32 D_80138460;
+extern char g_SeqTable[SS_SEQ_TABSIZ * SEQ_TABLE_S_MAX * SEQ_TABLE_T_MAX];
 extern const char* D_80138784[487];
 extern s32 D_80138F20;
 extern u8 D_80138F24[]; // Confirmed part of an array / struct
@@ -480,17 +564,19 @@ extern s32 D_80138F7C;
 extern s16 D_80138F80;
 extern s32 D_80138F84[];
 extern s16 D_80138FAC;
-extern s32 D_80138FB0;
+extern DebugMode g_DebugMode;
 extern s16 g_VolL; // vol_l
 extern s16 D_80138FBC;
 extern Unkstruct_80138FC0 D_80138FC0[0x10];
+extern s16 D_80138FC8;
+extern s16 D_80138FCA;
 extern s16 g_sfxRingBufferPos1; // D_80139000
 extern s16 g_VolR;              // vol_r
 extern s32 D_80139008;
 extern s16 D_80139010;
 extern u8 D_80139014;
 extern s8 D_80139018[];
-extern s32 g_DebugCurPal;
+extern u32 g_DebugCurPal;
 extern s16 D_8013901C;
 extern u8 D_80139020;
 extern s8 D_80139058[];
@@ -503,7 +589,7 @@ extern s32 D_801390B4[];
 extern s8 D_801390C4;
 extern GpuBuffer* g_BackBuffer;
 extern u8 D_801390D8;
-extern SfxRingBufferItem g_sfxRingBuffer1[]; // D_801390DC
+extern SfxRingBufferItem g_sfxRingBuffer1[MAX_SND_COUNT];
 extern u16 D_801396E4;
 extern Multi D_801396E6;
 extern u16 D_801396E8;
@@ -519,14 +605,24 @@ extern s32 D_8013980C;
 extern u8 D_80139810;
 extern s16 D_80139814[];
 extern s16 D_80139820;
+extern s32 D_80139824;
 extern s32 D_80139828[];
-extern s32 D_80139834[];
-extern s16 D_80139868[];
+extern s32 D_8013982C;
+extern s32 D_80139830[];
+extern s32 D_8013983C;
+extern s32 D_80139840;
+extern s32 D_80139844;
+extern s32 D_80139848;
+extern s32 D_8013984C;
+extern s32 D_80139850;
+extern s32 D_80139854;
+extern s16 D_80139868[MAX_SND_COUNT];
 extern s16 D_80139A68;
 extern s16 D_80139A6C;
 extern s16 g_sfxRingBufferPos2; // D_80139A70
 extern s16 D_80139A74;
 extern s16 D_80139A78;
+extern u_long* D_80139A7C;
 extern u16 D_8013AE7C;
 extern volatile unsigned char D_8013AE80;
 extern s16 D_8013AE84[];
@@ -534,11 +630,17 @@ extern s16 D_8013AE8C;
 extern s16 D_8013AEA0[];
 extern s16 D_8013AE94;
 extern s32 D_8013AE9C;
+extern s32 D_8013AED0;
 extern s16 D_8013AED4[];
+extern u32 D_8013AEE4;
 extern s16 g_volumeL;
 extern s16 g_volumeR;
 extern s16 D_8013B678[];
 extern s16 D_8013B698;
+extern u8 D_8013B6A0[]; // VAB file
+extern u8 D_8017D350[]; // VAB file
+extern u8 D_8018B4E0[]; // VAB file
+extern u8 D_801A9C80[]; // VAB file
 extern u16 D_8013AEE0;
 extern s8 D_8013AEE8;
 extern u8 D_8013AEEC;
@@ -546,7 +648,7 @@ extern s16 D_8013AEF0;
 extern s32 D_8013B158;
 extern Unkstruct_8013B160 D_8013B160[];
 extern s32 D_8013B3D0;
-extern s16 g_sfxRingBuffer2[]; // D_8013B3E8
+extern s16 g_sfxRingBuffer2[MAX_SND_COUNT]; // D_8013B3E8
 extern s32 D_8013B5E8;
 extern u8 D_8013B5EC[];
 extern s8 D_8013B614[];
@@ -556,7 +658,7 @@ extern s16 D_8013B620[];
 extern s32 D_8013B628[];
 extern s16 D_8013B648[];
 extern s16 D_8013B650[];
-extern s16 D_8013B658;
+extern s16 g_SeqAccessNum;
 extern s32 D_8013B660;
 extern s16 D_8013B664;
 extern s16 D_8013B668;
@@ -568,8 +670,10 @@ extern s32 D_8013B694;
 extern s32 D_8013B69C;
 extern s32 D_8016FCC0[];
 extern void (*D_8013C00C)(void);
-extern WeaponOvl D_8017A000;
-extern WeaponOvl D_8017D000;
+extern PfnEntityUpdate D_80179C80[];
+extern Weapon D_8017A000;
+extern PfnEntityUpdate D_8017CC40[];
+extern Weapon D_8017D000;
 extern void (*D_80170000)(void);
 extern ImgSrc* g_imgUnk8013C200;
 extern ImgSrc* g_imgUnk8013C270;
@@ -583,9 +687,6 @@ void SetRoomBackgroundLayer(s32 index, LayerDef2* layerDef);
 void CheckCollision(s32 x, s32 y, Collider* res, s32 unk);
 void DemoInit(s32 arg0);
 void DemoUpdate(void);
-void func_800209B4(s32*, s32, s32);
-void func_80021E38(s32);
-void func_80021EEC(void);
 void func_80028D3C(s32, s32);
 void func_80029FBC(s32);
 void func_8002A09C(void*);
@@ -595,22 +696,22 @@ void func_800E34A4(s8 arg0);
 void func_800E34DC(s32 arg0);
 void SetGameState(GameState gameState);
 void func_800E4970(void);
-s32 func_800E81FC(s32 id, SimFileType type);
-void func_800E8D24(void);
+s32 LoadFileSim(s32 id, SimFileType type);
+void ResetPadsRepeat(void);
 void func_800E8DF0(void);
 s32 func_800E912C(void);
 s32 func_800E9208(void);
 void func_800E928C(void);
 void func_800E92E4(void);
 void func_800E92F4(void);
-void func_800EA5E4(s32);
+s32 func_800EA5E4(u32);
 void func_800EA538(s32);
 void func_800EAD7C(void);
 void func_800EAEEC(void);
-void func_800EB534(s32 equipIcon, s32 palette, s32 index);
-void func_800ECE2C(void);
-void func_800EDA70(Primitive* prim);
-void func_800EDA94(void);
+void LoadEquipIcon(s32 equipIcon, s32 palette, s32 index);
+void HideAllBackgroundLayers(void);
+void DestroyPrimitive(Primitive* prim);
+void DestroyAllPrimitives(void);
 void func_800EDAE4(void);
 s32 AllocPrimitives(u8 type, s32 count);
 s32 func_800EDD9C(u8 primitives, s32 count);
@@ -627,66 +728,66 @@ void func_800F1EB0(s32, s32, s32);
 void func_800F2120(void);
 void func_800F223C(void);
 void func_800F4994(void);
-s32 func_800F4D38(s32, s32);
+s32 CalcAttack(s32, s32);
 void func_800F4F48(void);
-void func_800F4FD0(void);
+void CalcDefense(void);
 bool IsAlucart(void);
 void func_800F53A4(void);
 bool ScissorSprite(SPRT* arg0, MenuContext* arg1);
 void func_800F5904(void*, s32 x, s32 y, s32 w, u32 h, s32 u, s32 v, s32 unk1,
                    s32 unk2, bool disableTexShade, s32 unk4);
-void DrawMenuSprite(MenuContext* context, s32 x, s32 y, s32 width, s32 height,
-                    s32 u, s32 v, s32 clut, s32 tpage, s32 arg9,
-                    s32 colorIntensity, s32 argB);
+void DrawMenuSprite(
+    MenuContext* context, s32 x, s32 y, s32 width, s32 height, s32 u, s32 v,
+    s32 clut, s32 tpage, s32 arg9, s32 colorIntensity, s32 argB);
 void DrawMenuRect(MenuContext* context, s32 posX, s32 posY, s32 width,
                   s32 height, s32 r, s32 g, s32 b);
 s32 func_800F62E8(s32 arg0);
-void func_800FF7B8(s32 arg0);
+void InitStatsAndGear(bool isDeathTakingItems);
 void func_800F98AC(s32 arg0, s32 arg1);
 void func_800F99B8(s32 arg0, s32 arg1, s32 arg2);
 void DrawMenuChar(u8 ch, int x, int y, MenuContext* context);
-void DrawMenuStr(const char* str, s32 x, s32 y, MenuContext* context);
+void DrawMenuStr(const u8* str, s32 x, s32 y, MenuContext* context);
 void DrawMenuInt(s32 value, s32 x, s32 y, MenuContext*);
 void DrawSettingsReverseCloak(MenuContext* context);
 void DrawSettingsSound(MenuContext* context);
 void DrawPauseMenu(s32 arg0);
 void func_800F82F4(void);
 void func_800F8858(MenuContext* context);
-void func_800FA7E8(void);
+void CheckWeaponCombo(void);
 void func_800FABEC(s32 arg0);
 void func_800FAC30(void);
 void func_800FAF44(s32);
-s32 func_800FD4C0(s32 bossId, s32 action);
+s32 TimeAttackController(TimeAttackEvents eventId, TimeAttackActions action);
 s32 func_800FD664(s32 arg0);
 s32 func_800FD6C4(s32 equipTypeFilter);
-u8* func_800FD744(s32 equipTypeFilter);
-u8* func_800FD760(s32 equipTypeFilter);
+u8* GetEquipOrder(s32 equipTypeFilter);
+u8* GetEquipCount(s32 equipTypeFilter);
 const char* GetEquipmentName(s32 equipTypeFilter, s32 equipId);
 u32 CheckEquipmentItemCount(u32 itemId, u32 equipType);
 void AddToInventory(u16 itemId, s32 itemCategory);
 void func_800FD9D4(SpellDef* spell, s32 id);
-s16 func_800FDB18(s32, s32);
-void func_800FDCE0(s32);
+s16 GetStatusAilmentTimer(StatusAilments statusAilment, s16 timer);
+void LearnSpell(s32 spellId);
 void func_800FDE00(void);
 s32 func_800FE3C4(SubweaponDef* subwpn, s32 subweaponId, bool useHearts);
 void GetEquipProperties(s32 handId, Equipment* res, s32 equipId);
-s32 func_800FE97C(s32*, s32, s32, s32);
+s32 func_800FE97C(Unkstruct_800FE97C*, s32, s32, s32);
 s32 func_800FEEA4(s32, s32);
 void func_800FF0A0(s32 arg0);
 void func_80102CD8(s32);
 void func_80102DEC(s32 arg0);
 void func_80103EAC(void);
 void DestroyEntity(Entity*);
-void func_801065F4(s16 startIndex);
+void DestroyEntities(s16 startIndex);
 void func_801071CC(POLY_GT4* poly, u32 colorIntensity, s32 vertexIndex);
 void func_80107250(POLY_GT4* poly, s32 colorIntensity);
-void func_80107360(POLY_GT4* poly, s32 x, s32 y, s32 width, s32 height, s32 u,
-                   s32 v);
+void SetTexturedPrimRect(
+    Primitive* poly, s32 x, s32 y, s32 width, s32 height, s32 u, s32 v);
 void func_801073C0(void);
 void func_801092E8(s32);
-void SetPolyRect(POLY_GT4* poly, s32 x, s32 y, s32 width, s32 height);
+void SetPrimRect(Primitive* poly, s32 x, s32 y, s32 width, s32 height);
 void SetPlayerStep(PlayerSteps step);
-void UpdateAnim(FrameProperty* frameProps, s32*);
+u32 UpdateAnim(s8* frameProps, s32*);
 void func_8010DFF0(s32, s32);
 void func_8010E0A8(void);
 void func_8010E0B8(void);
@@ -714,12 +815,12 @@ void func_80118D0C(Entity* entity);
 void func_80119588(Entity* entity);
 void func_80119D3C(Entity* entity);
 void func_80119F70(Entity* entity);
-void func_8011A3AC(Entity* entity, s32 arg1, s32 arg2,
-                   Unkstruct_8011A3AC* arg3);
+void func_8011A3AC(
+    Entity* entity, s32 arg1, s32 arg2, Unkstruct_8011A3AC* arg3);
 void func_8011A4C8(Entity* entity);
 Entity* func_8011AAFC(Entity* entity, u32, s32);
 void func_8011AC3C(Entity* entity);
-void func_8011B190(Entity* entity);
+void EntityUnarmedAttack(Entity* entity);
 void func_8011B334(Entity* entity);
 void func_8011B480(Entity* entity);
 void func_8011B530(Entity* entity);
@@ -783,7 +884,7 @@ void func_801309B4(Entity* entity);
 void func_80130E94(Entity* entity);
 void func_8013136C(Entity* entity);
 void func_801315F8(Entity* entity);
-// commented as a requirement for func_80108448 to match
+// commented as a requirement for UpdateCd to match
 // void func_80131EBC(const char* str, s16 arg1);
 void func_80131ED8(s32 value);
 void func_80131EE8(void);

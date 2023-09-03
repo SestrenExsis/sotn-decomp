@@ -12,7 +12,12 @@ typedef struct {
 typedef struct {
     /* 0x0 */ s16 x;
     /* 0x2 */ s16 y;
-} Unkstruct6; // size = 0x4
+} Point16; // size = 0x4
+
+typedef struct {
+    /* 0x0 */ s32 x;
+    /* 0x4 */ s32 y;
+} Point32; // size = 0x8
 
 typedef struct {
     /* 0x0 */ u16 unk0;
@@ -33,13 +38,17 @@ typedef struct {
 } unkStruct_800A872C; // size = 0x10
 
 typedef struct {
-    /* 0x0 */ u16* fg;
-    /* 0x4 */ u16* bg;
-    /* 0x8 */ u16 unk8;
-    /* 0xA */ s16 unkA;
-    /* 0xC */ u16 unkC;
-    /* 0xE */ u16 unkE;
-} Unkstruct8; // size = 0x10
+    /* 0x00 */ u16* fg;
+    /* 0x04 */ u16* bg;
+    /* 0x08 */ u16 unk8;
+    /* 0x0A */ s16 unkA;
+    /* 0x0C */ u16 unkC;
+    /* 0x0E */ s16 unkE;
+    /* 0x10 */ char pad_10[0x30];
+    /* 0x40 */ s32 unk40;
+    /* 0x44 */ s32 unk44;
+    /* 0x48 */ s32 unk48;
+} Unkstruct8; // size = unknown
 
 typedef struct {
     /* 0x00 */ u8 unk0[0x278];
@@ -61,9 +70,9 @@ typedef struct {
     /* 0x01 */ u8 prog;
     /* 0x02 */ u8 note;
     /* 0x03 */ s8 volume;
-    /* 0x04 */ u8 pad0;
+    /* 0x04 */ u8 unk4;
     /* 0x05 */ u8 tone;
-    /* 0x06 */ u8 pad1;
+    /* 0x06 */ u8 unk6;
 } Unkstruct_800BF554; // size = 0x7
 
 typedef struct {
@@ -89,33 +98,14 @@ typedef struct {
 } Unkstruct_8013B15C; // size = 0x278
 
 typedef struct {
-    /* 0x00 */ u16 unk0;
-    /* 0x02 */ u16 unk2;
-    /* 0x04 */ u16 unk4;
-    /* 0x06 */ u16 unk6;
-    /* 0x08 */ u16 unk8;
-    /* 0x0A */ u16 unkA;
-    /* 0x0C */ u16 unkC;
-    /* 0x0E */ u16 unkE;
-    /* 0x10 */ u16 unk10;
-    /* 0x12 */ u16 unk12;
-    /* 0x14 */ u16 unk14;
-    /* 0x16 */ u16 unk16;
-    /* 0x18 */ u16 unk18;
-    /* 0x1A */ u16 unk1A;
-    /* 0x1C */ u16 unk1C;
-    /* 0x2E */ u16 unk1E;
-    /* 0x20 */ u16 unk20;
-    /* 0x22 */ u16 unk22;
-    /* 0x24 */ u16 unk24;
-    /* 0x26 */ u16 unk26;
-    /* 0x28 */ u16 unk28;
-    /* 0x2A */ u16 unk2A;
-    /* 0x2C */ u16 unk2C;
-    /* 0x2E */ u8 unk2E;
-    /* 0x2F */ u8 unk2F;
-    /* 0x30 */ char padA[0x10];
-} Unkstruct_8006C3CC; // size = 0x40
+    struct UnkStructClut* struct1;
+    struct UnkStructClut* struct2;
+    u16 unk8;
+    u16 unkA;
+    u16 unkC;
+    u16 unkE;
+    u8 unkArray[0x30];
+} Unkstruct_8006C3C4; // size = 0x40
 
 typedef struct {
     /* 0x00 */ s16 unk0; /* D_800ACEC6 */
@@ -139,7 +129,7 @@ typedef struct {
 
 // related to SFX
 typedef struct {
-    /* 0x00 */ s16 unk00;
+    /* 0x00 */ s16 sndId;
     /* 0x02 */ u16 unk02;
     /* 0x04 */ s16 unk04;
 } SfxRingBufferItem;
@@ -246,3 +236,93 @@ typedef struct Unkstruct_801C6C6C {
 typedef struct {
     s16 x, y;
 } Unkstruct_80138FC0;
+
+// Somehow related to how Player sprites are stored in the VRAM
+typedef struct {
+    s16 unk00, unk02;
+    u16 unk04, unk06;
+    u16 unk08, unk0A;
+    u16 unk0c, unk0E;
+    u16 unk10, unk12;
+    u16 unk14, unk16;
+    u8 unk18;
+    u8 unk19;
+    u8 unk1A;
+    u8 unk1B;
+    u8 unk1C;
+    u8 unk1D;
+    u8 unk1E;
+    u8 unk1F;
+    u8 unk20;
+    u8 unk21;
+    u8 unk22;
+    u8 unk23;
+    u8 unk24;
+    u8 unk25;
+    u8 unk26;
+    u8 unk27;
+} Unkstruct_800ECBF8_1; /* size = 0x28 */
+
+typedef struct {
+    u16 start;
+    s16 current;
+    s16* coords;
+    s16 unk8;
+} Unkstruct_80102CD8;
+
+typedef struct {
+    s16 unk0;
+    u8 unk2;
+    u8 unk3;
+} unkstruct_800ACF7C;
+typedef struct {
+    /* 0x0 */ s16 animSet;
+    /* 0x2 */ s16 unk2; // Entity::unk5A
+    /* 0x4 */ u16 palette;
+    /* 0x6 */ s8 blendMode;
+    /* 0x7 */ char pad_7;
+    /* 0x8 */ s32 unk8;
+} Unkstruct_80180FE0;
+
+typedef struct {
+    s32 unk0;
+    s32 unk4;
+    s32 unk8;
+    s32 unkC;
+    s32 unk10;
+} UnkStructClut;
+
+typedef struct Unkstruct_800F9F40 {
+    /* 0x0 */ s32 unk0;
+    /* 0x4 */ s32 unk4;
+    /* 0x8 */ s16 unk8;
+    /* 0xA */ s8 unkA;
+    /* 0xC */ s16 unkC;
+} Unkstruct_800F9F40;
+
+typedef struct {
+    /* 0x00 */ const char* name;
+    /* 0x04 */ const char* desc;
+    /* 0x08 */ s16 unk08;
+    /* 0x0A */ s16 unk0A;
+    /* 0x0C */ s16 unk0C;
+    /* 0x0E */ s16 unk0E;
+} RelicDesc;
+
+typedef struct {
+    /* 0x0 */ u32 unk0;
+    /* 0x4 */ u32 unk4;
+    /* 0x8 */ s32 damageTaken;
+    /* 0xC */ s32 unkC;
+} Unkstruct_800FE97C;
+
+typedef struct Unkstruct_801C7954 {
+    /* 0x00 */ u16 x1;
+    /* 0x02 */ u16 x0;
+    /* 0x04 */ u16 y2;
+    /* 0x06 */ u16 y0;
+    /* 0x08 */ u16 y3;
+    /* 0x0A */ u16 y1;
+    /* 0x0C */ u16 x3;
+    /* 0x0E */ u16 x2;
+} Unkstruct_801C7954; // size = 0x10

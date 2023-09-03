@@ -6,13 +6,13 @@ void EntityZombie(Entity* self) {
 
     if ((self->flags & 0x100) && (self->step < 4)) {
         func_801CAD28(NA_SE_EN_ZOMBIE_EXPLODE);
-        self->unk3C = 0;
+        self->hitboxState = 0;
         // Spawn Zombie explosion
         newEntity = AllocEntity(D_8007D858, &D_8007D858[32]);
         if (newEntity != NULL) {
             CreateEntityFromEntity(0x62, self, newEntity);
             newEntity->zPriority = self->zPriority + 1;
-            newEntity->subId = 3;
+            newEntity->params = 3;
             newEntity->posY.i.hi += 12;
         }
         DestroyEntity(self);
@@ -23,7 +23,7 @@ void EntityZombie(Entity* self) {
     case 0:
         InitializeEntity(D_80180BA8);
         self->hitboxWidth = 8;
-        self->unk12 = 0x10;
+        self->hitboxOffY = 0x10;
         self->hitboxHeight = 0;
         self->zPriority += 4;
         if (g_blinkTimer & 1) {
@@ -37,17 +37,17 @@ void EntityZombie(Entity* self) {
 
     case 1:
         if (func_801C5074(&D_80183CAC) & 1) {
-            self->facing = (func_801C4FD4() & 1) ^ 1;
+            self->facing = (GetSideToPlayer() & 1) ^ 1;
             self->step++;
         }
         break;
 
     case 2:
         if (AnimateEntity(D_80183C84, self) == 0) {
-            func_801C58A4(3);
+            SetStep(3);
         }
         if (self->animFrameDuration == 0) {
-            self->unk12 -= 2;
+            self->hitboxOffY -= 2;
             self->hitboxHeight += 2;
         }
         break;
@@ -56,14 +56,14 @@ void EntityZombie(Entity* self) {
         AnimateEntity(D_80183C7C, self);
         temp_a0 = func_801C52EC(&D_80183CBC);
         if (self->facing != 0) {
-            self->accelerationX = 0x8000;
+            self->velocityX = FIX(0.5);
         } else {
-            self->accelerationX = -0x8000;
+            self->velocityX = FIX(-0.5);
         }
 
         if (temp_a0 & 0xC0) {
-            self->unk3C = 0;
-            func_801C58A4(4);
+            self->hitboxState = 0;
+            SetStep(4);
         }
         break;
 
@@ -77,7 +77,14 @@ void EntityZombie(Entity* self) {
 
 const u32 rodataPadding_377CC[] = {0, 0};
 
-void EntityUnkId4D(Entity* self) {
+/*
+ * An invisible entity that is responsible for spawning the "floor
+ * zombies" that come up from the ground and swarm the player.
+ * Every 32 to 95 frames, it will alternate spawning a zombie
+ * on the right side or left side of the screen.
+ * The exact position a zombie is spawned in is also randomized.
+ */
+void EntityZombieSpawner(Entity* self) {
     s32 distCameraEntity;
     Entity* newEntity;
     s32 rnd;
@@ -85,7 +92,7 @@ void EntityUnkId4D(Entity* self) {
     if (self->step == 0) {
         InitializeEntity(D_80180AD0);
         self->ext.generic.unk80.modeS16.unk0 = 1;
-        self->flags &= 0x2000;
+        self->flags &= FLAG_UNK_2000;
     }
 
     if (D_8003BE23 != 0) {
@@ -104,6 +111,8 @@ void EntityUnkId4D(Entity* self) {
                 newEntity->posY.i.hi -= 48;
                 self->ext.generic.unk88.unk ^= 1;
 
+                // Zombies are prevented from spawning too close to the
+                // edges of the room.
                 distCameraEntity = g_Camera.posX.i.hi + newEntity->posX.i.hi;
                 if ((distCameraEntity < (g_CurrentRoom.x + 128)) ||
                     ((g_CurrentRoom.width - 128) < distCameraEntity)) {
@@ -219,38 +228,6 @@ void func_801D6FCC(POLY_GT4* arg0) {
     ((POLY_GT4*)arg0->tag)->pad3 = 0xA;
 }
 
-void func_801D7020(POLY_GT4* arg0) {
-    arg0->p3 = 0;
-    arg0->pad3 = 8;
-    ((POLY_GT4*)arg0->tag)->p3 = 0;
-    ((POLY_GT4*)arg0->tag)->code = 4;
-    ((POLY_GT4*)arg0->tag)->pad3 = 8;
-}
+#include "../unk_poly_func_0.h"
 
-s32 func_801D704C(s32 arg0, u8 arg1) {
-    s32 var_v0;
-    s32 ret = 0;
-    u8* var_a0 = arg0 + 4;
-    u8* var_v1;
-    s32 i;
-
-    for (i = 0; i < 4; i++) {
-        var_v1 = var_a0;
-        do {
-            var_v0 = *var_v1 - arg1;
-
-            if (var_v0 < 0) {
-                var_v0 = 0;
-            } else {
-                ret |= 1;
-            }
-
-            *var_v1 = var_v0;
-            var_v1++;
-        } while ((s32)var_v1 < ((s32)var_a0 + 3));
-
-        var_a0 += 0xC;
-    }
-
-    return ret;
-}
+#include "../unk_loop_func.h"

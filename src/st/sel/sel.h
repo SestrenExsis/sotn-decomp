@@ -10,8 +10,14 @@ extern s32 D_80180040[];
 extern s32 D_80180054[];
 extern u8* D_801803B0;
 extern u8* D_801803B4;
+extern s32 D_801804D0;
+extern u8 D_801804D4[];
+extern s32 D_801804D8[];
+extern const s32 D_801A7B8C[2];
 extern s32 D_801BAF20;
 extern s32 D_801BAF30;
+extern s32 D_801BB010;
+extern s32 D_801BB014;
 extern s32 g_InputCursorPos; // cursor Position
 void* g_Cluts[];
 void* g_EntityGfxs[];
@@ -20,7 +26,7 @@ void* D_8018C404;      // unknown type
 extern u8 g_InputSaveName[9];
 
 void Update(void);
-void TestCollisions(void);
+void HandleMainMenu(void);
 void func_801ACBE4(s32 arg0, u16 arg1);
 void func_801AD1D0(void);
 void func_801AD218(void);
@@ -32,8 +38,8 @@ void InitRoomEntities(s32 objLayoutId);
 void func_801B60D4(void);
 void func_801B17C8(void);
 void func_801B1CFC(POLY_GT4* poly, s32 colorIntensity);
-void func_801B26A0(POLY_GT4* poly, s32 x, s32 y, s32 width, s32 height, s32 u,
-                   s32 v);
+void func_801B26A0(
+    POLY_GT4* poly, s32 x, s32 y, s32 width, s32 height, s32 u, s32 v);
 
 typedef struct {
     u32 unk0;
@@ -210,6 +216,8 @@ extern s32 D_801D6B08;
 extern s32 D_801D6B0C;
 extern s32 D_801D6B20;
 extern s32 D_801D6B24;
+
+extern Dialogue g_Dialogue;
 
 void func_801B1ED0();
 void func_801B3A54(s32, s32);
