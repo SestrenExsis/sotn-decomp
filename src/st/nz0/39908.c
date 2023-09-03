@@ -241,7 +241,7 @@ void EntityNumericDamage(Entity* entity) {
                 prim = prim->next;
             }
             if (entity->ext.generic.unk88.U16.unk0 == 0) {
-                entity->posY.val -= 0x8000;
+                entity->posY.val -= FIX(0.5);
             }
         } else {
             while (prim != NULL) {
@@ -269,7 +269,7 @@ void EntityNumericDamage(Entity* entity) {
                 prim->blendMode = (tempMultiB.U16.unk0 >= 6) ? 2 : 0x13;
                 prim = prim->next;
             }
-            entity->posY.val -= 0x8000;
+            entity->posY.val -= FIX(0.5);
         }
     }
 }
