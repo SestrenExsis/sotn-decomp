@@ -1,6 +1,6 @@
 # configuration
 PSX_OVLS		:= dra ric weapon 
-PSX_KSTAGES		:= cen dre mad no3 np3 nz0 sel st0 wrp
+PSX_KSTAGES		:= cen dre mad no3 np3 nz0 sel st0 wrp lib
 PSX_RSTAGES		:= rwrp
 PSX_ALLSTAGES	:= $(addprefix st,$(PSX_KSTAGES)) $(addprefix st,$(PSX_RSTAGES))
 PSX_SERVANTS	:= tt_000

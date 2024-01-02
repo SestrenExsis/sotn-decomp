@@ -106,7 +106,7 @@ endef
 
 all: build check
 build: build_$(VERSION)
-build_us: main dra weapon ric cen dre lib mad no3 np3 nz0 sel st0 wrp rwrp tt_000
+build_us: main dra weapon ric cen dre mad no3 np3 nz0 sel st0 wrp rwrp tt_000 lib
 build_hd: dra
 clean:
 	git clean -fdx assets/
@@ -130,7 +130,6 @@ format:
 	./tools/symbols.py remove-orphans config/splat.us.ric.yaml
 	./tools/symbols.py remove-orphans config/splat.us.stcen.yaml
 	./tools/symbols.py remove-orphans config/splat.us.stdre.yaml
-	./tools/symbols.py remove-orphans config/splat.us.stlib.yaml
 	./tools/symbols.py remove-orphans config/splat.us.stno3.yaml
 	./tools/symbols.py remove-orphans config/splat.us.stnp3.yaml
 	./tools/symbols.py remove-orphans config/splat.us.stnz0.yaml
@@ -140,6 +139,7 @@ format:
 	./tools/symbols.py remove-orphans config/splat.us.strwrp.yaml
 	./tools/symbols.py remove-orphans config/splat.us.tt_000.yaml
 	./tools/symbols.py remove-orphans config/splat.us.stmad.yaml
+	./tools/symbols.py remove-orphans config/splat.us.stlib.yaml
 patch:
 	$(DIRT_PATCHER) config/dirt.$(VERSION).json
 check: patch
@@ -184,12 +184,6 @@ $(BUILD_DIR)/DRE.BIN: $(BUILD_DIR)/stdre.elf
 	$(OBJCOPY) -O binary $< $@
 $(BUILD_DIR)/F_DRE.BIN:
 	$(GFXSTAGE) e assets/st/dre $@
-
-lib: stlib_dirs $(BUILD_DIR)/LIB.BIN $(BUILD_DIR)/F_LIB.BIN
-$(BUILD_DIR)/LIB.BIN: $(BUILD_DIR)/stlib.elf
-	$(OBJCOPY) -O binary $< $@
-$(BUILD_DIR)/F_LIB.BIN:
-	$(GFXSTAGE) e assets/st/lib $@
 
 mad: stmad_dirs $(BUILD_DIR)/MAD.BIN $(BUILD_DIR)/F_MAD.BIN
 $(BUILD_DIR)/MAD.BIN: $(BUILD_DIR)/stmad.elf
@@ -241,6 +235,12 @@ tt_000: tt_000_dirs $(BUILD_DIR)/TT_000.BIN
 $(BUILD_DIR)/TT_000.BIN: $(BUILD_DIR)/tt_000.elf
 	$(OBJCOPY) -O binary $< $@
 	printf '\x00' | dd of=$@ bs=1 seek=40959 count=1 conv=notrunc
+
+lib: stlib_dirs $(BUILD_DIR)/LIB.BIN $(BUILD_DIR)/F_LIB.BIN
+$(BUILD_DIR)/LIB.BIN: $(BUILD_DIR)/stlib.elf
+	$(OBJCOPY) -O binary $< $@
+$(BUILD_DIR)/F_LIB.BIN:
+	$(GFXSTAGE) e assets/st/lib $@
 
 mad_fix: stmad_dirs $$(call list_o_files,st/mad) $$(call list_o_files,st)
 	$(LD) $(LD_FLAGS) -o $(BUILD_DIR)/stmad_fix.elf \
@@ -344,6 +344,7 @@ force_symbols:
 	$(PYTHON) ./tools/symbols.py map build/us/stwrp.map --no-default > config/symbols.us.stwrp.txt
 	$(PYTHON) ./tools/symbols.py map build/us/strwrp.map --no-default > config/symbols.us.strwrp.txt
 	$(PYTHON) ./tools/symbols.py map build/us/tt_000.map --no-default > config/symbols.us.tt_000.txt
+	$(PYTHON) ./tools/symbols.py map build/us/stlib.map --no-default > config/symbols.us.stlib.txt
 
 context:
 	$(M2CTX) $(SOURCE)
@@ -376,6 +377,8 @@ disk_prepare: build $(SOTNDISK)
 	cp $(BUILD_DIR)/WRP.BIN $(DISK_DIR)/ST/WRP/WRP.BIN
 	cp $(BUILD_DIR)/F_WRP.BIN $(DISK_DIR)/ST/WRP/F_WRP.BIN
 	cp $(BUILD_DIR)/TT_000.BIN $(DISK_DIR)/SERVANT/TT_000.BIN
+	cp $(BUILD_DIR)/LIB.BIN $(DISK_DIR)/ST/LIB/LIB.BIN
+	cp $(BUILD_DIR)/F_LIB.BIN $(DISK_DIR)/ST/LIB/F_LIB.BIN
 disk: disk_prepare
 	$(SOTNDISK) make build/sotn.$(VERSION).cue $(DISK_DIR) $(CONFIG_DIR)/disk.us.lba
 disk_debug: disk_prepare
@@ -463,7 +466,7 @@ SHELL = /bin/bash -e -o pipefail
 include tools/tools.mk
 
 .PHONY: all, clean, format, check, build, expected
-.PHONY: main, dra, ric, cen, dre, lib, mad, no3, np3, nz0, st0, wrp, rwrp, tt_000
+.PHONY: main, dra, ric, cen, dre, mad, no3, np3, nz0, st0, wrp, rwrp, tt_000, lib
 .PHONY: %_dirs
 .PHONY: extract, extract_%
 .PHONY: update-dependencies
