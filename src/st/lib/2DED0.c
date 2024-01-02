@@ -1,4 +1,5 @@
-#include "common.h"
+#include "game.h"
+#include "lib.h"
 
 INCLUDE_ASM("asm/us/st/lib/nonmatchings/2DED0", func_801ADED0);
 
