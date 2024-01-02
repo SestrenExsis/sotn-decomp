@@ -1,0 +1,34 @@
+options:
+  platform:     psx
+  basename:     stlib
+  base_path:    ..
+  build_path:   build/us
+  target_path:  disks/us/ST/LIB/LIB.BIN
+  asm_path:     asm/us/st/lib
+  asset_path:   assets/st/lib
+  src_path:     src/st/lib
+  ld_script_path: build/us/stlib.ld
+  compiler:     GCC
+  symbol_addrs_path:    config/generated.symbols.us.stlib.txt
+  undefined_funcs_auto_path: config/undefined_funcs_auto.us.stlib.txt
+  undefined_syms_auto_path:  config/undefined_syms_auto.us.stlib.txt
+  find_file_boundaries: yes
+  use_legacy_include_asm: no
+  migrate_rodata_to_functions: no
+  asm_jtbl_label_macro: jlabel
+  extensions_path: tools/splat_ext
+  disasm_unknown: true
+  section_order:
+    - ".data"
+    - ".rodata"
+    - ".text"
+    - ".bss"
+segments:
+  - name: stlib
+    type: code
+    start: 0x00000000
+    vram:  0x80180000
+    subalign: 4
+    subsegments:
+      -  [0x0, asm]
+  - [0x552CC]

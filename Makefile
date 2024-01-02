@@ -106,7 +106,7 @@ endef
 
 all: build check
 build: build_$(VERSION)
-build_us: main dra weapon ric cen dre mad no3 np3 nz0 sel st0 wrp rwrp tt_000
+build_us: main dra weapon ric cen dre lib mad no3 np3 nz0 sel st0 wrp rwrp tt_000
 build_hd: dra
 clean:
 	git clean -fdx assets/
@@ -130,6 +130,7 @@ format:
 	./tools/symbols.py remove-orphans config/splat.us.ric.yaml
 	./tools/symbols.py remove-orphans config/splat.us.stcen.yaml
 	./tools/symbols.py remove-orphans config/splat.us.stdre.yaml
+	./tools/symbols.py remove-orphans config/splat.us.stlib.yaml
 	./tools/symbols.py remove-orphans config/splat.us.stno3.yaml
 	./tools/symbols.py remove-orphans config/splat.us.stnp3.yaml
 	./tools/symbols.py remove-orphans config/splat.us.stnz0.yaml
@@ -183,6 +184,12 @@ $(BUILD_DIR)/DRE.BIN: $(BUILD_DIR)/stdre.elf
 	$(OBJCOPY) -O binary $< $@
 $(BUILD_DIR)/F_DRE.BIN:
 	$(GFXSTAGE) e assets/st/dre $@
+
+lib: stlib_dirs $(BUILD_DIR)/LIB.BIN $(BUILD_DIR)/F_LIB.BIN
+$(BUILD_DIR)/LIB.BIN: $(BUILD_DIR)/stlib.elf
+	$(OBJCOPY) -O binary $< $@
+$(BUILD_DIR)/F_LIB.BIN:
+	$(GFXSTAGE) e assets/st/lib $@
 
 mad: stmad_dirs $(BUILD_DIR)/MAD.BIN $(BUILD_DIR)/F_MAD.BIN
 $(BUILD_DIR)/MAD.BIN: $(BUILD_DIR)/stmad.elf
@@ -456,7 +463,7 @@ SHELL = /bin/bash -e -o pipefail
 include tools/tools.mk
 
 .PHONY: all, clean, format, check, build, expected
-.PHONY: main, dra, ric, cen, dre, mad, no3, np3, nz0, st0, wrp, rwrp, tt_000
+.PHONY: main, dra, ric, cen, dre, lib, mad, no3, np3, nz0, st0, wrp, rwrp, tt_000
 .PHONY: %_dirs
 .PHONY: extract, extract_%
 .PHONY: update-dependencies
