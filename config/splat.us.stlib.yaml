@@ -33,4 +33,5 @@ segments:
       - [0x0, rodata]
       - [0x2DED0, c]
       - [0x52CE0, data]
+      - [0x5415C, sbss]
   - [0x552CC]
